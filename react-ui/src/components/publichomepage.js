@@ -7,15 +7,6 @@ import GroupPlaylist from './groupplaylist'
 
 export default class PublicHomePage extends React.Component {
 
-  // authorize() {
-  //   console.log(window.location.hostname + ":5000/auth/spotify");
-  //   window.location.href = window.hostname + ":5000/auth/spotify";
-  // }
-
-// <a href="https://guarded-fortress-64455.herokuapp.com/auth/spotify">Spotify Login</a>
-// <a href="http://localhost:5000/auth/spotify">Spotify Login</a>
-
-
   render() {
     return (
       <div>
