@@ -1,0 +1,392 @@
+body, html {
+    height: 9999px;
+    padding-top: 35px;
+    overflow-x: hidden;
+    background-image:
+      linear-gradient(
+        rgba(0, 0, 0, 0.7),
+        rgba(0, 0, 0, 0.7)
+      ),
+      url("../img/background.jpg");
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+}
+
+.container {
+  height: 100%;
+}
+
+.groupThumb {
+  width: 250px;
+  height: 250px;
+  overflow: hidden;
+  margin-left: -85px;
+  margin-top: 20px;
+}
+
+.groupThumb img {
+  height: 100%;
+  transform: translateX(-50%);
+  margin-left: 50%;
+}
+
+.nav button {
+  border: none;
+  background-color: transparent;
+}
+
+.userThumb {
+  width:30px;
+  height: 30px;
+  overflow: hidden;
+}
+
+.userThumb img {
+  height: 100%;
+  transform: translateX(-50%);
+  margin-left: 50%;
+}
+
+.usersList {
+  white-space: nowrap;
+  color: #bdbdbd;
+}
+
+.usersList div {
+  display: inline-block;
+  color: #bdbdbd;
+  padding-left: 5px;
+}
+
+
+#search {
+  margin-top: 30px;
+}
+
+.navbar-form .form-group input {
+  width: 400px;
+  background-color: #616161;
+  border-color: transparent;
+}
+
+.navbar-form button {
+  background-color: #424242;
+  color: #bdbdbd;
+  border-color: transparent;
+}
+
+#main {
+  margin-left: -100px;
+  margin-right: 30px;
+}
+
+#main .jumbotron{
+  width: 95%;
+  padding-left: 0;
+  padding-top: 15px;
+  background-color: transparent;
+}
+
+.feeditem .thumbnail {
+  width: 240px;
+  height: 240px;
+  background-size:cover;
+  backgrond-repeat:no-repeat;
+  border: 0 none !important;
+  box-shadow: none !important;
+  border-radius: 0px !important;
+}
+
+.thumbnail .btn {
+  margin-top: 90px;
+  background-color: transparent !important;
+  border-color: transparent !important;
+}
+
+.thumbnail .btn-right {
+  margin-left: 150px;
+}
+
+.group3 {
+  background-image: url("../img/group3.jpg");
+  background-position: center;
+}
+
+.group1 {
+  background-image: url("../img/group1.jpg");
+  background-position: center;
+}
+
+.btn-group {
+  margin-top: -20px;
+  margin-left: 130px;
+}
+
+.btn-group button {
+  background-color: transparent;
+  border-color: transparent;
+  padding: 5px;
+  color: #bdbdbd;
+}
+
+.btn-group button:hover {
+  background-color: transparent;
+  border-color: transparent;
+}
+
+.btn-group button:hover .glyphicon-heart-empty{
+  color: #f06292;
+}
+
+.btn-group button:hover .glyphicon-retweet{
+  color: #90caf9;
+}
+
+.btn-group button:hover .glyphicon-send{
+  color: #fff176;
+}
+
+.btn-group button:hover .glyphicon-flag{
+  color: #b71c1c;
+}
+
+.btn-default:active:focus {
+  background-color: transparent !important;
+  outline: none !important;
+  border-color: transparent !important;
+}
+
+.btn-default:focus {
+  background-color: transparent !important;
+  outline: none !important;
+  border-color: transparent !important;
+}
+
+/*.btn-group button:focus .glyphicon-heart-empty{
+  color: #f06292;
+}*/
+
+.btn-group button:focus .glyphicon-retweet{
+  color: #90caf9;
+}
+
+.btn-group button:focus .glyphicon-flag{
+  color: #b71c1c;
+}
+
+.btn-group button:focus .glyphicon-send{
+  color: #fff176;
+}
+
+#unclicked {
+  color: #bdbdbd !important;
+}
+
+#heart {
+  color: #f06292 !important;
+}
+
+.group-content {
+  margin-left: -32px;
+  width: 120%;
+  background-color: transparent;
+}
+
+.group-content li{
+  padding: 5px;
+}
+
+.panel-default {
+  background-color: transparent !important;
+  border-color: transparent !important;
+}
+
+.panel-default .panel-heading {
+  background-color: transparent !important;
+  color: #bdbdbd !important;
+  border-radius: 0px !important;
+  border-color: #616161 !important;
+}
+
+.panel-default .panel-heading  a{
+  color: #e0e0e0 !important;
+}
+
+
+.panel-default li {
+  background-color: transparent !important;
+  color: #bdbdbd !important;
+  border-color: transparent;
+}
+
+.side-bar {
+  border-left: 1px solid #bdbdbd;
+  margin-left: -50px;
+  border-color: #616161;
+}
+
+.side-bar a{
+  color: #e0e0e0;
+}
+
+.side-bar .panel {
+  background-color: transparent !important;
+  margin-left: 4px;
+}
+
+.side-bar .panel-heading {
+  margin-left: -20px;
+  border-bottom: 1px solid #616161;
+  width: 350px;
+  color: #bdbdbd !important;
+}
+
+.side-bar .panel-title {
+  font-size: 15px;
+}
+
+.media img {
+  width: 80px;
+  height: 80px;
+  position: relative;
+}
+
+.side-bar .media {
+  width: 150%;
+  font-size: 11px;
+  margin-top: 20px !important;
+
+}
+
+.media-body {
+  color: #bdbdbd !important;
+}
+
+.profile {
+  color: #bdbdbd;
+}
+
+#searchResult div{
+  color: #bdbdbd;
+}
+
+#song-search-bar {
+  margin-top: 10px;
+  margin-bottom: 20px;
+}
+
+#playButton {
+  background-color: transparent;
+  border: none;
+  position: absolute;
+  z-index: 2;
+  opacity: 0.6;
+}
+
+#playButton img {
+  width: 60px;
+  height: 60px;
+  position: center;
+  margin-left: 8px;
+  margin-top: 15px;
+}
+
+#searchPlayButton {
+  background-color: transparent;
+  border: transparent;
+  margin-top: 10px;
+}
+
+#searchPlayButton .glyphicon-play {
+  color: #bdbdbd;
+}
+
+#searchPlayButton .glyphicon-pause {
+  color: #bdbdbd;
+}
+
+.login-button {
+  width: 40px;
+  height: 40px;
+  background-color: transparent;
+  background-size:cover;
+  backgrond-repeat:no-repeat;
+  border: 0 none !important;
+  box-shadow: none !important;
+  border-radius: 0px !important;
+  background-position: center;
+}
+
+.login-button .spotify-login-button{
+  background-image: url("../img/Spotify_Icon_CMYK_Green.png");
+}
+
+.login-button .youtube-login-button{
+  background-image: url("../img/youtube_social_circle_red.png");
+  margin-left: 10px;
+}
+
+#active {
+  width: 60px;
+  height: 60px;
+  margin-top: -20px;
+  background-color: transparent;
+  background-size:cover;
+  backgrond-repeat:no-repeat;
+  border: 0 none !important;
+  box-shadow: none !important;
+  border-radius: 0px !important;
+  background-position: center;
+}
+
+
+.btn:focus {
+  outline: none !important;
+}
+
+#addButton {
+  background-color: transparent;
+}
+
+#addButton .glyphicon-ok-sign {
+  color: #bdbdbd;
+}
+
+#added {
+  color: #00C851 !important;
+}
+
+.group-playlist img {
+  margin: auto;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.songdisplay {
+  display: inline-block;
+  overflow: hidden;
+  width: 100px;
+  height: 100px;
+  margin-top: 40px;
+  margin-right: 35px;
+}
+
+.mainfeedsongdisplay {
+  height: 200px;
+  overflow-y: scroll;
+}
+
+.mainfeedsongdisplay::-webkit-scrollbar {
+  width: 12px;
+}
+
+.mainfeedsongdisplay::-webkit-scrollbar-track {
+  -webkit-box-shadow: inset 0 0 6px DimGray;
+  border-radius: 10px;
+}
+
+.mainfeedsongdisplay::-webkit-scrollbar-thumb {
+  border-radius: 10px;
+  -webkit-box-shadow: inset 10px 0 6px Gray;
+}
