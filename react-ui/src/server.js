@@ -88,9 +88,8 @@ export function searchYoutube(queryText, cb) {
 // }
 //
 // export function auth() {
-//   sendXHR('GET', '/auth/spotify', undefined, (xhr) => {
-//     // console.log(xhr.responseText);
-//     window.location = xhr.responseText;
+//   sendXHR('POST', '/auth/spotify', undefined, (xhr) => {
+//     console.log(xhr.responseText);
 //   });
 // }
 
