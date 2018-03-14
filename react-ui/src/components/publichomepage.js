@@ -26,7 +26,7 @@ export default class PublicHomePage extends React.Component {
             </div>
           </div>
           <div className="col-md-12" id="main">
-          <a href="https://whispering-chamber-83498.herokuapp.com:5000/auth/spotify">Spotify Login</a>
+          <a href="https://whispering-chamber-83498.herokuapp.com/auth/spotify">Spotify Login</a>
           </div>
         </div>
       </div>
