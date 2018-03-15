@@ -32,7 +32,7 @@ export default class LikedItems extends React.Component {
         <div className="media" key={1}>
           <div className="media-left">
             <Link to={"/group/" + this.state._id}>
-              <img className="media-object" src="./img/group1.jpg" alt="..." />
+              <img className="media-object" src="../img/group1.jpg" alt="..." />
             </Link>
           </div>
           <div className="media-body">
@@ -50,7 +50,7 @@ export default class LikedItems extends React.Component {
         <div className="media" key={2}>
           <div className="media-left">
             <Link to={"/group/" + this.state._id + "/" + this.state.groupName}>
-              <img className="media-object" src="./img/group1.jpg" alt="..." />
+              <img className="media-object" src="../img/group1.jpg" alt="..." />
             </Link>
           </div>
           <div className="media-body">

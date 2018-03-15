@@ -56,7 +56,7 @@ ReactDOM.render((
   <Router history={browserHistory}>
     <Route path="/" component={App}>
       <IndexRoute component={HomePage} />
-      <Route path=":id" component={MainPage} />
+      <Route path="user/:id" component={MainPage} />
       <Route path="profile/:id" component={ProfilePage}/>
       <Route path="group/:id" component={GroupAuthed} />
       <Route path="group/:id/:grouptitle" component={GroupProfile} />

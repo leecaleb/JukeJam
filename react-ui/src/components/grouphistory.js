@@ -13,7 +13,7 @@ export default class GroupHistory extends React.Component {
       <div className="media">
         <div className="media-left">
           <Link to={"/group/" + this.state._id}>
-            <img className="media-object" src="./img/group3.jpg" alt="..." />
+            <img className="media-object" src="../img/group3.jpg" alt="..." />
           </Link>
         </div>
         <div className="media-body">

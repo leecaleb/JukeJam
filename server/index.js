@@ -128,8 +128,10 @@ app.get('/callback', function(req, res) {
           // res.redirect('https://cryptic-dusk-90102.herokuapp.com/000000000000000000000004');
           // console.log("dataCollection: " + dataCollection('users'));
           // res.redirect('http://localhost:3000/' + data.body.id);
-          // res.redirect('http://localhost:3000/000000000000000000000004');
-          res.redirect('https://whispering-chamber-83498.herokuapp.com/000000000000000000000004');
+          // console.log('req: ');
+          // console.log(req);
+          // res.redirect('http://localhost:3000/user/000000000000000000000004');
+          res.redirect('https://whispering-chamber-83498.herokuapp.com/user/000000000000000000000004');
 
 
         }, function(err) {
