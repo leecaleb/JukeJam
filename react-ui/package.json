@@ -10,7 +10,7 @@
     "react-bootstrap": "^0.31.2",
     "react-dom": "15.6.1",
     "react-player": "^0.20.0",
-    "react-router": "2.0.0",
+    "react-router": "^2.8.1",
     "react-scripts": "^1.1.1",
     "react-sound": "^0.8.0",
     "react-youtube": "7.5.0"
