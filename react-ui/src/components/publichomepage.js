@@ -7,6 +7,9 @@ import GroupPlaylist from './groupplaylist'
 
 export default class PublicHomePage extends React.Component {
 
+  // <a href="https://whispering-chamber-83498.herokuapp.com/auth/spotify">Spotify Login</a>
+
+
   render() {
     return (
       <div>
@@ -17,7 +20,7 @@ export default class PublicHomePage extends React.Component {
             </div>
           </div>
           <div className="col-md-12" id="main">
-          <a href="https://whispering-chamber-83498.herokuapp.com/auth/spotify">Spotify Login</a>
+          <a href="http://localhost:5000/auth/spotify">Spotify Login</a>
           </div>
         </div>
       </div>

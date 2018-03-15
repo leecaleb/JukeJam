@@ -60,8 +60,8 @@ app.listen(PORT, function () {
 var client_id = 'f926d557a44541e09a2d7f32ffd20969';
 var client_secret = '0eaaf77eae0e487094d6119778eaa993';
 // var redirect_uri = 'https://guarded-fortress-64455.herokuapp.com/callback'; // Your redirect uri
-// var redirect_uri = 'http://localhost:5000/callback'; // Your redirect uri
-var redirect_uri = 'https://whispering-chamber-83498.herokuapp.com/callback'; // Your redirect uri
+var redirect_uri = 'http://localhost:5000/callback'; // Your redirect uri
+// var redirect_uri = 'https://whispering-chamber-83498.herokuapp.com/callback'; // Your redirect uri
 
 
 var SpotifyWebApi = require('spotify-web-api-node');
@@ -128,8 +128,8 @@ app.get('/callback', function(req, res) {
           // res.redirect('https://cryptic-dusk-90102.herokuapp.com/000000000000000000000004');
           // console.log("dataCollection: " + dataCollection('users'));
           // res.redirect('http://localhost:3000/' + data.body.id);
-          // res.redirect('http://localhost:3000/000000000000000000000004');
-          res.redirect('https://whispering-chamber-83498.herokuapp.com/000000000000000000000004');
+          res.redirect('http://localhost:3000/000000000000000000000004');
+          // res.redirect('https://whispering-chamber-83498.herokuapp.com/000000000000000000000004');
 
 
         }, function(err) {
