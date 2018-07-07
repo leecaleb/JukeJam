@@ -20,7 +20,6 @@ export default class SpotifySearch extends React.Component {
 
   handleSearch() {
     searchSong(this.state.searchText, (data) => {
-      console.log(data);
       this.setState({searchRes: data.tracks.items});
     })
   }
@@ -35,8 +34,8 @@ export default class SpotifySearch extends React.Component {
     }
   }
 
-  handleGroupPlaylist(songId) {
-    this.props.handleGroupPlaylist(songId);
+  handleGroupPlaylist(songId, action) {
+    this.props.handleGroupPlaylist(songId, action);
     // console.log("searchText: " + this.state.searchText);
     // searchSong(this.state.searchText, (data) => {
     //   console.log(data);
@@ -55,36 +54,40 @@ export default class SpotifySearch extends React.Component {
   render() {
     return (
       <div>
-        <div className="col-md-6">
-          <div className="row">
-            <div className="col-md-12 login-button">
-              <button type="button" className="btn login-button spotify-login-button" id="active" onClick={this.switchToSpotify.bind(this)}/>
-              <button type="button" className="btn login-button youtube-login-button" onClick={this.switchToYoutube.bind(this)}/>
+        <div className="col-md-9">
+          <div className="panel panel-default">
+            <div className="panel-heading">
+              <div className="col-md-12 login-button">
+                <button type="button" className="btn login-button spotify-login-button" id="active" onClick={this.switchToSpotify.bind(this)}/>
+                <button type="button" className="btn login-button youtube-login-button" onClick={this.switchToYoutube.bind(this)}/>
+              </div>
             </div>
-          </div>
-          <div className="input-group" id="song-search-bar">
-            <input type="text" className="form-control" placeholder="Search for..."
-              onChange={(e) => this.handleTextChange(e)}
-              onKeyUp={(e) => this.handleOnKeyUp(e)}/>
-            <span className="input-group-btn">
-              <button className="btn btn-default" type="button" onClick={this.handleSearch.bind(this)}>Go!</button>
-            </span>
-          </div>
-          <div id="searchResult">
-            {this.state.searchRes.map((song) => {
-              return(
-                <SpotifySearchSongDisplay
-                  key={song.id}
-                  data={song}
-                  songId={song.id}
-                  groupId={this.props.groupId}
-                  handleGroupPlaylist={this.handleGroupPlaylist.bind(this)}/>
-              )
-            })}
+            <div className="panel-body">
+              Panel Body
+            </div>
           </div>
         </div>
       </div>
-
     )
   }
 }
+// <div className="input-group" id="song-search-bar">
+//   <input type="text" className="form-control" placeholder="Search for..."
+//     onChange={(e) => this.handleTextChange(e)}
+//     onKeyUp={(e) => this.handleOnKeyUp(e)}/>
+//   <span className="input-group-btn">
+//     <button className="btn btn-default" type="button" onClick={this.handleSearch.bind(this)}>Go!</button>
+//   </span>
+// </div>
+// <div id="searchResult">
+//   {this.state.searchRes.map((song) => {
+//     return(
+//       <SpotifySearchSongDisplay
+//         key={song.id}
+//         data={song}
+//         songId={song.id}
+//         groupId={this.props.groupId}
+//         handleGroupPlaylist={this.handleGroupPlaylist.bind(this)}/>
+//     )
+//   })}
+// </div>

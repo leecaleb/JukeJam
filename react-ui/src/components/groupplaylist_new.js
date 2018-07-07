@@ -14,25 +14,24 @@ export default class GroupPlaylist extends React.Component {
       songs: [],
       playing: false,
       startPlay: false,
-      selected: -1
+      playing_song: [],
+      next_song: [],
+      selected_id: 6
     };
   }
 
   componentDidMount() {
     this.props.onRef(this);
     getGroupData(this.props.groupId, (groupinfo) => {
-      // console.log(groupinfo.songs);
       this.setState({
         songs: groupinfo.songs
       },
       getPlaylist(this.props.groupId, (songlist) => {
-        // console.log("songlist: " + songlist);
         this.setState({
           spotify: songlist
         },
         getYoutubePlaylist(this.props.groupId, (songlist) => {
-          // console.log("youtube songlist: ");
-          // console.log(songlist);
+
           this.setState({
             youtube: songlist
           },
@@ -42,13 +41,9 @@ export default class GroupPlaylist extends React.Component {
     });
   }
 
-  // shouldComponentUpdate() {
-  //   return !this.state.playing
-  // }
-
   // action: 1 if song added and 0 if song removed
   refresh(song, action) {
-    var newArr = this.state.playlist.reverse();
+    var newArr = this.state.playlist
     if(action) {
       newArr.push(song.tracks[0]);
     } else {
@@ -58,7 +53,7 @@ export default class GroupPlaylist extends React.Component {
       }
     }
     this.setState({
-      playlist: newArr.reverse()
+      playlist: newArr
     });
   }
 
@@ -94,10 +89,11 @@ export default class GroupPlaylist extends React.Component {
           }
         }
       }
+      var selected_id = this.state.selected_id
       this.setState({
-        playlist: playlistArr.reverse(),
-        // selected: playlistArr.length-1
-        selected: 4
+        playlist: playlistArr,
+        playing_song: [playlistArr[selected_id]],
+        next_song: [playlistArr[selected_id+1]]
       });
   }
 
@@ -129,33 +125,18 @@ export default class GroupPlaylist extends React.Component {
     }
   }
 
-  // {this.state.playlist.map((song) => {
-  //   return (
-  //     <div key={song.id} className="songdisplay">
-  //       <SongDisplay
-  //         data={song}
-  //         songId={song.id}
-  //         groupId={this.props.groupId}
-  //         handleGroupPlaylist={this.refresh.bind(this)}/>
-  //     </div>
-  //   )
-  // })}
-
   handlePlay() {
-    // console.log("this.state.playing: " + this.state.playing);
     if(!this.state.startPlay) {
-      this.setState({startPlay:true})
+      this.setState({
+        startPlay:true
+      })
     }
 
-    if(this.state.selected !== -1){
-      this.setState({
-        playing: true
-      }, () => {
-        this.playsong.handlePlay()
-      })
-    } else {
-      console.log("playlist finished!!");
-    }
+    this.setState({
+      playing: true
+    }, () => {
+      this.playsong.handlePlay()
+    })
   }
 
   handlePause() {
@@ -165,15 +146,29 @@ export default class GroupPlaylist extends React.Component {
   }
 
   playNext() {
-    this.setState({
-      selected: --this.state.selected
-    }, () => {
-      this.handlePlay()
-    });
+    if (this.state.selected_id+2 < this.state.playlist.length) {
+      this.setState({
+        selected_id: ++this.state.selected_id,
+        playing_song: [this.state.playlist[this.state.selected_id]],
+        next_song: [this.state.playlist[this.state.selected_id+1]]
+      }, () => {
+        this.handlePlay()
+      });
+    } else if (this.state.selected_id+1 < this.state.playlist.length) { //playnext and last song
+      this.setState({
+        selected_id: ++this.state.selected_id,
+        playing_song: [this.state.playlist[this.state.selected_id]],
+        next_song: [null]
+      }, () => {
+        this.handlePlay()
+      });
+    } else {
+      // TODO: // check to see if there's any newly added song
+
+    }
   }
 
   render() {
-
     var playButton = [];
     if(this.state.playing){
       playButton.push(
@@ -189,43 +184,65 @@ export default class GroupPlaylist extends React.Component {
       );
     }
 
-    var playingsonginfo = [];
-    if(this.state.selected !== -1) {
-      if(this.state.playlist[this.state.selected].type == null) {
-        //Youtube song info
-        playingsonginfo.push(
-            <div className="media-body">
-              <h3 className="media-heading">{this.state.playlist[this.state.selected].snippet.title.toString() + " "}
-                </h3>
-                <p>by {this.state.playlist[this.state.selected].snippet.channelTitle.toString()}</p>
-            </div>
-        )
-
-      } else {
-        //Spotify song info
-        playingsonginfo.push(
-            <div className="media-body">
-              <h3 className="media-heading">{this.state.playlist[this.state.selected].name.toString() + " "}
-                </h3>
-                <p>{this.state.playlist[this.state.selected].artists[0].name.toString()} · {this.state.playlist[this.state.selected].album.name.toString()}</p>
-            </div>
-        )
-      }
-    }
-
     return (
       <div>
         <div className="col-md-6">
-          <h1>Your Playlist</h1>
 
           <div className="row">
             <div className="media-left">
               {playButton}
             </div>
-            {playingsonginfo}
+            {this.state.playing_song.map((song) => {
+              if(song.type == null) {
+                //Youtube song info
+                return (
+                  <div className="media-body" key={song.id}>
+                    <h3 className="media-heading">{song.snippet.title.toString() + " "}
+                      </h3>
+                      <p>by {song.snippet.channelTitle.toString()}</p>
+                  </div>
+                )
+
+              } else {
+                //Spotify song info
+                return (
+                  <div className="media-body" key={song.id}>
+                    <h3 className="media-heading">{song.name.toString() + " "}
+                      </h3>
+                      <p>{song.artists[0].name.toString()} · {song.album.name.toString()}</p>
+                  </div>
+                )
+              }
+            })}
           </div>
 
-          {this.state.playlist.map(this.buildChildren.bind(this))}
+          {this.state.playing_song.map((song) => {
+            return (
+              <div key={song.id} className="songdisplay">
+                <PlayingSongDisplay
+                  data={song}
+                  songId={song.id}
+                  groupId={this.props.groupId}
+                  playNext={this.playNext.bind(this)}
+                  startPlay={this.state.startPlay}
+                  onRef={ref => this.playsong = ref} />
+              </div>
+            )
+          })}
+          {this.state.next_song.map((song) => {
+            if (song != null) {
+              return (
+                <div key={song.id} className="songdisplay">
+                  <SongDisplay
+                    data={song}
+                    songId={song.id}
+                    groupId={this.props.groupId} />
+                </div>
+              )
+            }
+          })}
+
+
         </div>
       </div>
 

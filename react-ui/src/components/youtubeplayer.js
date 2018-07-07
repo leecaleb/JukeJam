@@ -6,24 +6,26 @@ export default class YoutubePlayer extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      songidlist: [],
-      songid: []
+      songidlist: []
     }
   }
 
   componentDidMount() {
-    getGroupData(this.props.groupId, (feeditem) => {
-      this.setState({
-        songidlist: feeditem.songs.youtube
-      })
-    });
+    // getGroupData(this.props.groupId, (feeditem) => {
+    //   this.setState({
+    //     songidlist: feeditem.songs.youtube.map((obj) => {
+    //       return(obj._id)
+    //     })
+    //   })
+    // });
   }
 
   handleAdd() {
     addYoutubeSong(this.props.groupId, this.props.videoId, (addedsonginfo) => {
-      console.log("addedsonginfo: " + addedsonginfo);
+      var updatedSongList = this.state.songidlist
+      updatedSongList.push(addedsonginfo[0].id)
       this.setState({
-        songid: addedsonginfo
+        songidlist: updatedSongList
       },
       this.props.handleGroupPlaylist(addedsonginfo)
       );
@@ -37,7 +39,7 @@ export default class YoutubePlayer extends React.Component {
   added() {
     var found = false;
     for(var i = 0; i < this.state.songidlist.length; ++i) {
-      if(this.state.songidlist[i]._id === this.props.videoId){
+      if(this.state.songidlist[i] === this.props.videoId){
         found =  true;
         break;
       }
@@ -48,7 +50,13 @@ export default class YoutubePlayer extends React.Component {
   render() {
     const opts = {
       height: '100',
-      width: '100'
+      width: '100',
+      playerVars: {
+        controls: 0,
+        showinfo: 0,
+        modestbranding: 1,
+        rel: 0
+      }
     };
 
     window.YTConfig = {

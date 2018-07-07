@@ -23,18 +23,10 @@ export default class SpotifySearchSongDisplay extends React.Component {
         });
       });
     });
-    // for(var i = 0; i < this.props.playlistLength; ++i) {
-    //   var newArr = this.state.songIdList.slice();
-    //   getSong(this.props.groupId, i, (song) => {
-    //     newArr.push(song.id);
-    //     this.setState({
-    //       songIdList: newArr
-    //     })
-    //   });
-    // }
   }
 
   handlePlay() {
+    console.log(this.props.data)
     this.setState({playing: true});
     this.song.audioEl.play();
   }
@@ -45,21 +37,26 @@ export default class SpotifySearchSongDisplay extends React.Component {
   }
 
   handleAdd() {
-    // console.log("this.state.songList: " + this.state.songList)
-    // console.log("this.props.songId: " + this.props.songId);
-    addSong(this.props.groupId, this.props.songId, (updatedSongList) => {
-      this.setState(
-        {songList: updatedSongList},
-        this.props.handleGroupPlaylist(updatedSongList)
-      );
-    });
+    addSong(this.props.groupId, this.props.songId, (addedSong) => {
+      // this.props.handleGroupPlaylist(addedSong, 1)
+      var updatedSongList = this.state.songIdList
+      updatedSongList.push(addedSong.tracks[0].id)
+      this.setState({
+        songIdList: updatedSongList
+      }, this.props.handleGroupPlaylist(addedSong, 1))
+    })
   }
 
   handleRemove() {
-    removeSong(this.props.groupId, this.props.songId, (updatedSongList) => {
-      this.setState({songList: updatedSongList});
-    });
-    this.props.handleGroupPlaylist();
+    removeSong(this.props.groupId, this.props.songId, (removedSong) => {
+      var songs = this.state.songIdList
+      var index = songs.indexOf(removedSong.tracks[0].id)
+      songs.splice(index, 1)
+      this.setState({
+        songIdList: songs
+      }, this.props.handleGroupPlaylist(removedSong, 0))
+      // this.props.handleGroupPlaylist(removedSong, 0)
+    })
   }
 
   added() {
@@ -121,8 +118,6 @@ export default class SpotifySearchSongDisplay extends React.Component {
     var display = [];
     // this.props.data.kind
     if(this.props.data.type == null) {
-      // console.log("NULL");
-      // console.log(this.props.data);
       display = (
         <div className="media">
           <div className="media-left">

@@ -119,7 +119,8 @@ export default class SongDisplay extends React.Component {
       playerVars: {
         controls: 0,
         showinfo: 0,
-        modestbranding: 1
+        modestbranding: 1,
+        rel: 0
       }
     };
 

@@ -12,22 +12,23 @@ export default class FeedItem extends React.Component {
   handleLikeClick(clickEvent) {
     clickEvent.preventDefault();
     if (clickEvent.button === 0) {
-      var callbackFunction = (updatedLikeCounter) => {
-        this.setState({likerList: updatedLikeCounter});
-      };
-      likeFeedItem(this.state._id, this.props.user, callbackFunction);
-      this.props.clicked();
+      likeFeedItem(this.state._id, this.props.user, (updatedLikeCounter) => {
+        this.setState({likerList: updatedLikeCounter}, () => {
+          this.props.clicked();
+        });
+      });
     }
   }
 
   handleUnlikeClick(clickEvent) {
     clickEvent.preventDefault();
     if (clickEvent.button === 0) {
-      var callbackFunction = (updatedLikeCounter) => {
-        this.setState({likerList: updatedLikeCounter});
-      };
-      unlikeFeedItem(this.state._id, this.props.user, callbackFunction);
-      this.props.clicked();
+      unlikeFeedItem(this.state._id, this.props.user, (updatedLikeCounter) => {
+        this.setState({likerList: updatedLikeCounter}, () => {
+          this.props.clicked();
+        });
+      });
+
     }
   }
 
@@ -41,6 +42,7 @@ export default class FeedItem extends React.Component {
     // Look for a likeCounter entry with userId 4 -- which is the
     // current user.
     for (var i = 0; i < likes.length; i++) {
+
       if (likes[i]._id === this.props.user) {
         liked = true;
         break;
@@ -53,6 +55,7 @@ export default class FeedItem extends React.Component {
   render() {
     var likeButton = [];
     var clicked = this.didUserLike();
+    // console.log(clicked)
     if(clicked) {
       likeButton.push (
         <button type="button" className="btn btn-default" key={1} onClick={(e) => this.handleUnlikeClick(e)}>

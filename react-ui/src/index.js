@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import MainFeed from './components/mainfeed'
 import NavBar from './components/navbar'
 import Profile from './components/profile'
-import GroupInfo from './components/groupinfo'
+import GroupInfo from './components/groupinfo_new'
 import GroupPage from './components/grouppage'
 import PublicHomePage from './components/publichomepage'
 // import registerServiceWorker from './registerServiceWorker';
@@ -47,7 +47,7 @@ class App extends React.Component {
         <NavBar />
         {this.props.children}
       </div>
-    )
+    );
   }
 }
 

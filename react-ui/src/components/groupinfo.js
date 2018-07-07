@@ -35,12 +35,11 @@ export default class GroupInfo extends React.Component {
 
 
 
-  handleGroupPlaylist(songId) {
-    this.playlist.refresh(songId);
+  handleGroupPlaylist(songId, action) {
+    this.playlist.refresh(songId, action);
   }
 
   handleGroupPlaylistYoutube(song) {
-    console.log("song: " + song);
     this.playlist.refreshForYoutube(song);
   }
 

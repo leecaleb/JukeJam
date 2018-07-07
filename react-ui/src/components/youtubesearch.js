@@ -20,7 +20,6 @@ export default class YoutubeSearch extends React.Component {
 
   handleYoutubeSearch() {
     searchYoutube(this.state.searchText, (data) => {
-      console.log(data);
       this.setState({searchRes: data});
     })
   }

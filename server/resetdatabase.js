@@ -66,15 +66,9 @@ var initialData = {
       "postDate": 1453668480000,
       "location": "Austin, TX",
       "groupUsers": [new ObjectID("000000000000000000000001"), new ObjectID("000000000000000000000003"), new ObjectID("000000000000000000000004")],
-      // "songs": [
-      //   "5nNmj1cLH3r4aA4XDJ2bgY",
-      //   "41on8RwRh22IHcChAN2gm8",
-      //   "1IXiBroTLzGMKvd2OTR0GG",
-      //   "76EM5JFNGgkBxFq16xZTCC",
-      //   "2QbSGkb3TgghEHpjKCsznm",
-      //   "73OZcwiBI41R0o5TDGeZ7i",
-      //   "1IMu267b5ydoJ4KmKNQQWK"],
       "songs": {
+        "totalSongs": 8,
+        "selected_id": 3,
         "youtube": [
           {
             "index": 3,
@@ -88,7 +82,7 @@ var initialData = {
           },
           {
             "index": 1,
-            "_id": "41on8RwRh22IHcChAN2gm8"
+            "_id": "22UDw8rSfLbUsaAGTXQ4Z8"
           },
           {
             "index": 2,
@@ -122,12 +116,17 @@ var initialData = {
       "postDate": 1453668480000,
       "location": "Austin, TX",
       "groupUsers": [new ObjectID("000000000000000000000001"),new ObjectID("000000000000000000000002")],
-      "songs": [
-        {
-          "type": "spotify",
-          "_id": "5nNmj1cLH3r4aA4XDJ2bgY"
-        }
-      ],
+      "songs": {
+        "totalSongs": 1,
+        "selected_id": 0,
+        "youtube": [],
+        "spotify": [
+          {
+            "index": 0,
+            "_id": "5nNmj1cLH3r4aA4XDJ2bgY"
+          }
+        ]
+      },
       "likerList": [new ObjectID("000000000000000000000002"), new ObjectID("000000000000000000000003"), new ObjectID("000000000000000000000004")]
     }
   }

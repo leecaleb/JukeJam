@@ -10,13 +10,12 @@ export default class PlayingSongDisplay extends React.Component {
       playing: false,
       songList: [],
       songIdList: [],
-      selectedSong: [],
-      songId: []
+      songId: [],
+      player_ready: false
     };
   }
 
   componentDidMount() {
-    // console.log("componentDidMount.playing: " + this.state.playing);
     this.props.onRef(this);
     getPlaylist(this.props.groupId, (playlist) => {
       this.setState({songList: playlist}, () => {
@@ -35,33 +34,31 @@ export default class PlayingSongDisplay extends React.Component {
     // document.body.style.background-image = url(this.props.data.snippet.thumbnails.maxres.url);
 
     if(this.props.data.type == null){
-      if(this.props.selectedSong === this.props.songId){
-        this.setState({
-          playing: true
-        });
-        // this.song.target.playVideo();
-      }
+      this.setState({
+        playing: true
+      }, () => {
+        if (this.state.player_ready) {
+          document.getElementById('youtube-player-' + this.props.data.id).contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*')
+        }
+      });
     } else {
-      if(this.props.selectedSong === this.props.songId){
-        this.setState({playing: true});
-        this.song.audioEl.play();
+      this.setState({
+        playing: true
+      }, () => {
+        this.song.audioEl.play()
+      })
       }
-    }
   }
 
   handlePause() {
     if(this.props.data.type == null){
-      if(this.props.selectedSong === this.props.songId){
         this.setState({
           playing: false
-        });
+        }, document.getElementById('youtube-player-' + this.props.data.id).contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*'));
         // this.song.target.pauseVideo();
-      }
     } else {
-      if(this.props.selectedSong === this.props.songId){
         this.setState({playing: false});
         this.song.audioEl.pause();
-      }
     }
   }
 
@@ -91,20 +88,22 @@ export default class PlayingSongDisplay extends React.Component {
   }
 
   playNext() {
-    console.log("finished");
     this.setState({
       playing: false
     }, this.props.playNext())
   }
 
-  _onReady(event) {
-    // // access to player in all event handlers via event.target
-    // console.log("onReady: " + this.state.playing);
-    // if(this.state.playing) {
-    //   event.target.playVideo();
-    // } else {
-    //   event.target.pauseVideo();
-    // }
+  onReady(e) {
+    console.log('onReady!!!')
+    this.setState({
+      playing: true,
+      player_ready: true
+    }, () => {
+      // e.target.playVideo()
+      if(!this.props.startPlay) {
+        e.target.pauseVideo()
+      }
+    })
   }
 
   render() {
@@ -136,23 +135,26 @@ export default class PlayingSongDisplay extends React.Component {
         controls: 0,
         showinfo: 0,
         modestbranding: 1,
+        rel: 0,
         autoplay: 1
       }
     };
 
     var display = [];
-    if(this.props.data.type == null) {
+
+    if(this.props.data.type == null) { //youtube
       display = (
         <div className="group-playlist" id="song-display">
             <Youtube
+              id={'youtube-player-'+ this.props.data.id}
               opts={opts}
               videoId={this.props.data.id}
               onEnd={this.playNext.bind(this)}
-              onReady={this._onReady.bind(this)}
+              onReady={this.onReady.bind(this)}
             />
         </div>
       )
-    } else {
+    } else { //spotify
       if(this.state.playing){
         playButton.push(
           <button className="btn btn-default" type="button" key={0} id="playButton" onClick={this.handlePause.bind(this)}>

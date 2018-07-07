@@ -30,21 +30,21 @@ export function getFeedData(user, cb) {
   // console.log("working!");
   sendXHR('GET', '/user/' + user + '/feed', undefined, (xhr) => {
     // Call the callback with the data.
-    console.warn(xhr.responseText);
+    console.error(xhr.responseText);
     cb(JSON.parse(xhr.responseText));
   });
 }
 
 export function getLikedPlaylist(user, cb) {
   sendXHR('GET', '/user/' + user + '/likedplaylist', undefined, (xhr) => {
-    console.warn(xhr.responseText);
+    // console.warn(xhr.responseText);
     cb(JSON.parse(xhr.responseText));
   });
 }
 
 export function getGroupHistory(user, cb) {
   sendXHR('GET', '/user/' + user + '/history', undefined, (xhr) => {
-    console.warn(xhr.responseText);
+    // console.warn(xhr.responseText);
     cb(JSON.parse(xhr.responseText));
   });
 }
@@ -179,6 +179,12 @@ export function addYoutubeSong(feedItemId, songId, cb) {
   });
 }
 
+export function removeYoutubeSong(feedItemId, songId, cb) {
+  sendXHR('DELETE', '/feeditem/' + feedItemId + 'youtubesonglist', songId, (xhr) => {
+    cb(JSON.parse(xhr.responseText));
+  });
+}
+
 //to find token, type node and "new Buffer(JSON.stringify({ id: "000000000000000000000004" })).toString('base64');"
 // var token = 'eyAiaWQiOiA0IH0NCg==';
 var token = 'eyJpZCI6IjAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwNCJ9';
@@ -214,7 +220,7 @@ function sendXHR(verb, resource, body, cb) {
 
   // Time out the request if it takes longer than 10,000
   // milliseconds (10 seconds)
-  xhr.timeout = 10000;
+  xhr.timeout = 20000;
 
   // Network failure: Could not connect to server.
   xhr.addEventListener('error', function() {
