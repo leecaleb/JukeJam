@@ -34,8 +34,8 @@ export default class YoutubeSearch extends React.Component {
     }
   }
 
-  handleGroupPlaylist(song) {
-    this.props.handleGroupPlaylist(song);
+  handleGroupPlaylist(song, action) {
+    this.props.handleGroupPlaylist(song, action);
     // console.log("searchText: " + this.state.searchText);
     // searchSong(this.state.searchText, (data) => {
     //   console.log(data);

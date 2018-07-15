@@ -27,7 +27,7 @@ export default class YoutubePlayer extends React.Component {
       this.setState({
         songidlist: updatedSongList
       },
-      this.props.handleGroupPlaylist(addedsonginfo)
+      this.props.handleGroupPlaylist(addedsonginfo, 1)
       );
     });
   }
@@ -64,7 +64,7 @@ export default class YoutubePlayer extends React.Component {
     }
 
     var addButton = [];
-    if(this.added()) {
+    if(this.props.included) {
       addButton.push(
         <small key={1}><button className="btn btn-xs" type="button"
           id="addButton"

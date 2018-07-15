@@ -3,7 +3,7 @@ import {Link} from 'react-router';
 import {getGroupData, getSong, addSong} from '../server'
 import ReactAudioPlayer from 'react-audio-player'
 import SongDisplay from './songdisplay'
-import GroupPlaylist from './groupplaylist_new'
+import GroupPlaylist from './groupplaylist_new2'
 import SpotifySearch from './spotifysearch'
 import YoutubeSearch from './youtubesearch'
 import SearchPanel from './searchpanel'
@@ -22,30 +22,22 @@ export default class GroupInfo extends React.Component {
     this.handleLeavePanel = this.handleLeavePanel.bind(this);
   }
 
-  componentDidMount(){
+  componentDidMount () {
     document.addEventListener('mousedown', this.handleLeavePanel)
     getGroupData(this.props.groupId, (group) => {
       this.setState({
         groupInfo: group,
         groupUsers: group.groupUsers
       });
-      // console.log("this.state.playlistLength: " + this.state.playlistLength);
     });
-
-
-    // this.setState({spotify: true})
   }
 
-  // <img key={user._id} src={user.img} />
-
-
-
-  handleGroupPlaylist(songId, action) {
-    this.playlist.refresh(songId, action);
-  }
-
-  handleGroupPlaylistYoutube(song) {
-    // this.playlist.refreshForYoutube(song);
+  handleGroupPlaylist(songId, action, spotify_search) {
+    if (spotify_search) {
+      this.playlist.refresh(songId, action);
+    } else {
+      this.playlist.refreshForYoutube(songId, action);
+    }
   }
 
   switchToSpotify() {
@@ -71,42 +63,22 @@ export default class GroupInfo extends React.Component {
     }
   }
 
-  // <div className="input-group" id="song-search-bar">
-  //   <input type="text" className="form-control" placeholder="Search for..."
-  //     onChange={(e) => this.handleTextChange(e)}
-  //     onKeyUp={(e) => this.handleOnKeyUp(e)}/>
-  //   <span className="input-group-btn">
-  //     <button className="btn btn-default" type="button" onClick={this.handleSearch.bind(this)}>Go!</button>
-  //   </span>
-  // </div>
-  // <div id="searchResult">
-  //   {this.state.searchRes.map((song) => {
-  //     return(
-  //       <SpotifySearchSongDisplay
-  //         key={song.id}
-  //         data={song}
-  //         songId={song.id}
-  //         groupId={this.props.groupId}
-  //         handleGroupPlaylist={this.handleGroupPlaylist.bind(this)}/>
-  //     )
-  //   })}
-  // </div>
-
   render() {
     let search = [];
     if (!this.state.searching) {
       search.push(
-        <div ref={this.searchPanelRef}>
+        <div key={0} ref={this.searchPanelRef}>
           <SearchPanel
-            key={0}
             handleGroupPlaylist={this.handleGroupPlaylist.bind(this)}
-            groupId = {this.props.groupId}/>
+            groupId = {this.props.groupId}
+            songs= {this.state.groupInfo.songs}/>
         </div>
       )
     }
     return (
       <div>
         <div className="col-md-12">
+          {search}
           <div className="container col-md-3 usersList">
             <div className="row">
               <h1>{this.state.groupInfo.groupName}</h1>
@@ -119,14 +91,14 @@ export default class GroupInfo extends React.Component {
               </div>
             </div>
           </div>
-          {search}
+
         </div>
         <div className="container">
           <div className="row">
             <div className="col-md-12">
               <GroupPlaylist
                 groupId = {this.props.groupId}
-                onRef={ref => this.playlist = ref}/>
+                onRef={ref => this.playlist = ref} />
             </div>
           </div>
         </div>

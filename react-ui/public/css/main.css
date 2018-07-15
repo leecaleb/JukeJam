@@ -2,14 +2,15 @@ body, html {
     height: 9999px;
     padding-top: 35px;
     overflow-x: hidden;
-    background-image:
+    background-color: black !important;
+    /* background-image:
       linear-gradient(
         rgba(0, 0, 0, 0.7),
         rgba(0, 0, 0, 0.7)
-      ),
-      url("../img/background.jpg");
-    background-repeat: no-repeat;
-    background-attachment: fixed;
+      ), */
+      /* url("../img/background.jpg"); */
+    /* background-repeat: no-repeat;
+    background-attachment: fixed; */
 }
 
 .container {
@@ -50,8 +51,16 @@ body, html {
 .usersList {
   white-space: nowrap;
   color: #bdbdbd;
-  padding-left: 120px !important;
+  background-color: black;
+  text-align: center;
+  position: fixed !important;
+  z-index: 3;
+  height: 105px;
+  width: 100% !important;
+  margin-top: -20px;
 }
+
+/* .usersList  */
 
 .usersList div {
   display: inline-block;
@@ -261,6 +270,7 @@ body, html {
 
 .media-body {
   color: #bdbdbd !important;
+  width: 500px !important;
 }
 
 .profile {
@@ -278,7 +288,7 @@ body, html {
   width: 500px;
   /* display: none; */
   position: absolute;
-  z-index: 2;
+  z-index: 4;
 }
 
 #search-input {
@@ -332,11 +342,13 @@ body, html {
 
 .search-panel {
   margin-top: 20px;
+  position: fixed !important;
+  z-index: 4;
 }
 
 .search-btn {
   position: absolute;
-  z-index: 2;
+  z-index: 4;
   padding-top: 10px;
 }
 
@@ -345,9 +357,9 @@ body, html {
   position: absolute;
   /* height: 100px; */
   width: 540px;
-  opacity: 0.7;
+  opacity: 0.9;
   background-color: black;
-  z-index: 1;
+  z-index: 3;
   padding-top: 100px !important;
 }
 
@@ -413,13 +425,44 @@ body, html {
   z-index: -1 !important;
 }
 
-.songdisplay {
+.playingsongdisplay {
   display: inline-block;
+    overflow: hidden;
+    width: 300px;
+    height: 300px;
+    /* position: absolute; */
+    z-index: 2 !important;
+}
+
+#upvote {
+  background-color: transparent;
+  border: none;
+  color: green;
+}
+
+#downvote {
+  background-color: transparent;
+  border: none;
+  color: red;
+}
+
+.player {
+  margin: 110px;
+  padding-left: 140px;
+}
+
+.songdisplay {
+  display: inline-block !important;
   overflow: hidden;
-  width: 100px;
-  height: 100px;
-  margin-top: 40px;
-  margin-right: 35px;
+  width: 300px;
+  height: 300px;
+  margin: 40px;
+  z-index: 1 !important;
+  opacity: 0.5;
+}
+
+.group_playlist {
+  margin-top: 55px;
 }
 
 .mainfeedsongdisplay {

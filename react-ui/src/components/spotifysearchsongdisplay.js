@@ -87,7 +87,7 @@ export default class SpotifySearchSongDisplay extends React.Component {
       );
     }
 
-    if(this.added()) {
+    if(this.props.included) {
       addButton.push(
         <small key={1}><button className="btn btn-xs" type="button"
           id="addButton"

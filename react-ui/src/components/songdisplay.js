@@ -16,6 +16,7 @@ export default class SongDisplay extends React.Component {
   }
 
   componentDidMount() {
+    // console.log(this.props.data.snippet.thumbnails.high.url)
     getPlaylist(this.props.groupId, (playlist) => {
       this.setState({songList: playlist}, () => {
         this.setState({
@@ -114,8 +115,8 @@ export default class SongDisplay extends React.Component {
     }
 
     const opts = {
-      height: '100',
-      width: '100',
+      height: '300',
+      width: '300',
       playerVars: {
         controls: 0,
         showinfo: 0,
@@ -127,7 +128,7 @@ export default class SongDisplay extends React.Component {
     var display = [];
     if(this.props.data.type == null) {
       display = (
-        <div className="group-playlist" id="song-display">
+        <div className="group-playlist">
             <Youtube
               opts={opts}
               videoId={this.props.data.id}
@@ -136,8 +137,7 @@ export default class SongDisplay extends React.Component {
       )
     } else {
       display = (
-        <div className="group-playlist" id="song-display">
-          {playButton}
+        <div className="group-playlist">
             <img src={this.props.data.album.images[0].url} alt="no album cover found :(" />
             <ReactAudioPlayer
               onEnded = {this.playNext.bind(this)}

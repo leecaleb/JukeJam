@@ -1,7 +1,7 @@
 import React from 'react'
 import SpotifySearchSongDisplay from './spotifysearchsongdisplay'
 import YoutubePlayer from './youtubeplayer'
-import {getPlaylist, searchSong, searchYoutube} from '../server'
+import {getPlaylist, getGroupData, searchSong, searchYoutube} from '../server'
 
 export default class SearchPanel extends React.Component {
   constructor(props) {
@@ -10,12 +10,23 @@ export default class SearchPanel extends React.Component {
       groupPlaylist: [],
       searchText: "",
       searchRes: [],
-      spotify_search: false
+      spotify_search: false,
+      youtube_list: [],
+      spotify_list: []
     }
     this.switchToSpotify = this.switchToSpotify.bind(this)
     this.switchToYoutube = this.switchToYoutube.bind(this)
     this.handleSearch = this.handleSearch.bind(this)
     this.handleGroupPlaylist = this.handleGroupPlaylist.bind(this)
+  }
+
+  componentDidMount () {
+    getGroupData(this.props.groupId, (group) => {
+      this.setState({
+        youtube_list: group.songs.youtube.map((song) => song._id),
+        spotify_list: group.songs.spotify.map((song) => song._id)
+      });
+    });
   }
 
   handleTextChange(e) {
@@ -44,7 +55,20 @@ export default class SearchPanel extends React.Component {
   }
 
   handleGroupPlaylist (songId, action) {
-    this.props.handleGroupPlaylist(songId, action);
+    if (this.state.spotify_search) {
+      let updated_list = this.state.spotify_list
+      updated_list.push(songId.tracks[0].id)
+      this.setState({
+        spotify_list: updated_list
+      })
+    } else {
+      let updated_list = this.state.youtube_list
+      updated_list.push(songId[0].id)
+      this.setState({
+        youtube_list: updated_list
+      })
+    }
+    this.props.handleGroupPlaylist(songId, action, this.state.spotify_search);
   }
 
   switchToSpotify () {
@@ -71,32 +95,59 @@ export default class SearchPanel extends React.Component {
     var song_display = []
     if (this.state.spotify_search) {
       song_display.push(
-        <div id="searchResult">
+        <div key={0} id="searchResult">
           {this.state.searchRes.map((song) => {
-            return(
-              <SpotifySearchSongDisplay
-                key={song.id}
-                data={song}
-                songId={song.id}
-                groupId={this.props.groupId}
-                handleGroupPlaylist={this.handleGroupPlaylist}/>
-            )
+            if (this.state.spotify_list.includes(song.id)) {
+              return(
+                <SpotifySearchSongDisplay
+                  key={song.id}
+                  data={song}
+                  songId={song.id}
+                  groupId={this.props.groupId}
+                  handleGroupPlaylist={this.handleGroupPlaylist}
+                  included={1}/>
+              )
+            } else {
+              return(
+                <SpotifySearchSongDisplay
+                  key={song.id}
+                  data={song}
+                  songId={song.id}
+                  groupId={this.props.groupId}
+                  handleGroupPlaylist={this.handleGroupPlaylist}
+                  included={0}/>
+              )
+            }
           })}
         </div>
       )
     } else {
       song_display.push(
-        <div id="searchResult">
+        <div key={1} id="searchResult">
           {this.state.searchRes.map((song) => {
-            return(
-              <YoutubePlayer
-                key={song.id.videoId}
-                videoId={song.id.videoId}
-                title={song.snippet.title}
-                channelTitle={song.snippet.channelTitle}
-                groupId={this.props.groupId}
-                handleGroupPlaylist={this.handleGroupPlaylist.bind(this)}/>
-            )
+            if (this.state.youtube_list.includes(song.id.videoId)) {
+              return(
+                <YoutubePlayer
+                  key={song.id.videoId}
+                  videoId={song.id.videoId}
+                  title={song.snippet.title}
+                  channelTitle={song.snippet.channelTitle}
+                  groupId={this.props.groupId}
+                  handleGroupPlaylist={this.handleGroupPlaylist}
+                  included={1}/>
+              )
+            } else {
+              return(
+                <YoutubePlayer
+                  key={song.id.videoId}
+                  videoId={song.id.videoId}
+                  title={song.snippet.title}
+                  channelTitle={song.snippet.channelTitle}
+                  groupId={this.props.groupId}
+                  handleGroupPlaylist={this.handleGroupPlaylist}
+                  included={0}/>
+              )
+            }
           })}
         </div>
       )

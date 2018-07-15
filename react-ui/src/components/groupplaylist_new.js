@@ -16,7 +16,7 @@ export default class GroupPlaylist extends React.Component {
       startPlay: false,
       playing_song: [],
       next_song: [],
-      selected_id: 6
+      selected_id: 7
     };
   }
 
@@ -57,11 +57,20 @@ export default class GroupPlaylist extends React.Component {
     });
   }
 
-  refreshForYoutube(song) {
-    var newArr = this.state.playlist.reverse();
-    newArr.push(song[0]);
+  refreshForYoutube(song, action) {
+    var newArr = this.state.playlist
+    if (action) {
+      newArr.push(song[0])
+    } else {
+      console.log('refreshForYoutube')
+      console.log(song[0])
+      var index = newArr.map((song) => song.id).indexOf(song[0].id)
+      if (index > -1) {
+        newArr.splice(index, 1)
+      }
+    }
     this.setState({
-      playlist: newArr.reverse()
+      playlist: newArr
     });
   }
 
