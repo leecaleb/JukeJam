@@ -68,7 +68,7 @@ export default class SearchPanel extends React.Component {
         youtube_list: updated_list
       })
     }
-    this.props.handleGroupPlaylist(songId, action, this.state.spotify_search);
+    // this.props.handleGroupPlaylist(songId, action, this.state.spotify_search);
   }
 
   switchToSpotify () {

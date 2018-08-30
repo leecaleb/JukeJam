@@ -1,35 +1,101 @@
-var express = require('express');
-const path = require('path');
-var app = express();
-var bodyParser = require('body-parser');
-var querystring = require('querystring');
+var express = require('express')
+const path = require('path')
+var app = express()
+var bodyParser = require('body-parser')
+var querystring = require('querystring')
+var cookieParser = require('cookie-parser')
 // var database = require('./database.js');
 // var readDocument = database.readDocument;
-var validate = require('express-jsonschema').validate;
+var validate = require('express-jsonschema').validate
 // var writeDocument = database.writeDocument;
 // var addDocument = database.addDocument;
 // var dataCollection = database.dataCollection;
-var passport = require('passport');
+var passport = require('passport')
+var request = require('request')
+
+// SOCKET
+var WebSocket = require('ws')
+// var wss = new WebSocket.Server('ws://localhost:3000/group/000000000000000000000001/to/ws')
+var wss = new WebSocket.Server({ port:8989 })
+const users = []
+const sockets = []
+const broadcast = (data, ws) => {
+  wss.clients.forEach((client) => {
+    if (client !== ws && client.readyState === WebSocket.OPEN) {
+      client.send(JSON.stringify(data))
+    }
+  })
+}
+
+wss.on('connection', (ws) => {
+  sockets.push(ws)
+  ws.on('message', (message) => {
+    const data = JSON.parse(message)
+    switch (data.type) {
+      case 'ADD_USER_SUCCESS': {
+        user = {
+          userId: data.userId,
+          username: data.username
+        }
+        users.push(user)
+        ws.send(JSON.stringify({
+          type: 'ONLINE_USER_LIST',
+          users
+        }))
+        broadcast({
+          type: 'ONLINE_USER_LIST',
+          users
+        }, ws)
+        break
+      }
+      case 'ADD_SONG_SUCCESS': {
+        broadcast({
+          type: 'NEW_SONG_ADDED',
+          song: data.song
+        }, ws)
+        break
+      }
+      case 'PLAY_NEXT': {
+        broadcast({
+          type: 'NEXT_SONG',
+          song: data.nextSong
+        }, ws)
+        break
+      }
+      default: break
+    }
+  })
+  ws.on('close', () => {
+    console.log('socket closed')
+    var index = users.indexOf(user)
+    users.splice(index, 1)
+    broadcast({
+      type: 'ONLINE_USER_LIST',
+      users
+    }, ws)
+  })
+})
 
 // var mongo_express = require('mongo-express/lib/middleware');
 // // Import the default Mongo Express configuration
 // var mongo_express_config = require('mongo-express/config.js');
 // app.use('/mongo_express', mongo_express(mongo_express_config));
 
-var MongoClient = require('mongodb').MongoClient;
-var ObjectID = require('mongodb').ObjectID;
-var DBurl = 'mongodb://heroku_39clj157:gvpqlgnmmekbcronm1dvdojdcu@ds235775.mlab.com:35775/heroku_39clj157';
+var MongoClient = require('mongodb').MongoClient
+var ObjectID = require('mongodb').ObjectID
+var DBurl = 'mongodb://heroku_39clj157:gvpqlgnmmekbcronm1dvdojdcu@ds235775.mlab.com:35775/heroku_39clj157'
 
 MongoClient.connect(DBurl, function(err, db) {
 
+app.use(cookieParser())
 
 // app.use(express.static('./public'));
 // Priority serve any static files.
-app.use(express.static(path.resolve(__dirname, '../react-ui/build')));
+app.use(express.static(path.resolve(__dirname, '../react-ui/build')))
 // app.use('/*', express.static(path.resolve(__dirname, '../react-ui/build')));
+app.use(passport.initialize())
+app.use(passport.session())
 
-app.use(passport.initialize());
-app.use(passport.session());
 
 // var port = process.env.PORT || 3000;
 //
@@ -58,7 +124,7 @@ app.listen(PORT, function () {
 });
 
 var client_id = 'f926d557a44541e09a2d7f32ffd20969';
-var client_secret = '0eaaf77eae0e487094d6119778eaa993';
+var client_secret = 'aa0e13cf32a849c59db84aa9e6e8b4a1';
 // var redirect_uri = 'https://guarded-fortress-64455.herokuapp.com/callback'; // Your redirect uri
 var redirect_uri = 'http://localhost:5000/callback'; // Your redirect uri
 // var redirect_uri = 'https://whispering-chamber-83498.herokuapp.com/callback'; // Your redirect uri
@@ -88,8 +154,7 @@ passport.use(new SpotifyStrategy({
   clientID : client_id,
   clientSecret : client_secret,
   callbackURL : redirect_uri
-},
-function(accessToken, refreshToken, profile, done) {
+}, (accessToken, refreshToken, profile, done) => {
   process.nextTick(function() {
     return done(null, profile);
   });
@@ -98,41 +163,51 @@ function(accessToken, refreshToken, profile, done) {
 app.use(bodyParser.text());
 app.use(bodyParser.json());
 
-app.get('/auth/spotify',
-passport.authenticate(
-  'spotify',
-  {scope: ['user-read-private', 'user-read-email'], showDialog: true}),
-  function(req, res) {
-      console.log("here!");
-  });
-
+app.get('/auth/spotify', passport.authenticate(
+    'spotify',
+    {scope: ['user-read-private', 'user-read-email'], showDialog: true}
+  ), (req, res) => {}
+)
 
 app.get('/callback', function(req, res) {
-
   // your application requests refresh and access tokens
   // after checking the state parameter
-
   var code = req.query.code || null;
       spotifyApi.authorizationCodeGrant(code)
     .then(function(data) {
-      console.log('The token expires in ' + data.body['expires_in']);
-      console.log('The access token is ' + data.body['access_token']);
       console.log('The refresh token is ' + data.body['refresh_token']);
-
       // Set the access token on the API object to use it in later calls
       spotifyApi.setAccessToken(data.body['access_token']);
       spotifyApi.setRefreshToken(data.body['refresh_token']);
+      // res.cookie('refresh_token', spotifyApi.refresh)
       spotifyApi.getMe()
         .then(function(data) {
-          console.log('Some information about the authenticated user', data.body.id);
-          // res.redirect('https://cryptic-dusk-90102.herokuapp.com/000000000000000000000004');
-          // console.log("dataCollection: " + dataCollection('users'));
-          // res.redirect('http://localhost:3000/' + data.body.id);
-          // console.log('req: ');
-          // console.log(req);
-          res.redirect('http://localhost:3000/user/000000000000000000000004');
-          // res.redirect('https://whispering-chamber-83498.herokuapp.com/user/000000000000000000000004');
-
+          db.collection('users').findOne({
+            fullName: data.body.id
+          }, (err, userData) => {
+            if (err) {
+              console.log(err)
+            } else if (userData === null) {
+              db.collection('users').insertOne({
+                _id: new ObjectID(),
+                fullName: data.body.id,
+                img: "",
+                feed: {},
+                groups: [],
+                likedPlaylist:[]
+              }, (err, new_user) => {
+                if (err) {
+                  console.log(err)
+                } else {
+                  // res.cookie('token', new Buffer(JSON.stringify({ id: new_user.insertedId })).toString('base64'))
+                  res.redirect('http://localhost:3000/user/' + new_user.insertedId);
+                }
+              })
+            } else {
+              // var token = new Buffer(JSON.stringify({ id: userData._id })).toString('base64');
+              res.redirect('http://localhost:3000/user/' + userData._id);
+            }
+          })
 
         }, function(err) {
           console.log('Something went wrong!', err);
@@ -143,31 +218,6 @@ app.get('/callback', function(req, res) {
     });
   // }
 });
-
-// function readDocument(collction, collectionId) {
-//   MongoClient.connect(DBurl, function(err, db) {
-//     if (err) {
-//       throw new Error("Could not connect to database: " + err);
-//     } else {
-//       console.log("Connected correctly to server.");
-//
-//       var query = {
-//         "_id": collectionId
-//       };
-//       db.collection('fkd').findOne(query, function(err, doc) {
-//         if (err) {
-//           throw err;
-//         } else {
-//           console.log("collectionId: " + collectionId);
-//           console.log("collction: " + collction);
-//           console.log("Found collection " + collction + ": ");
-//           console.log(doc);
-//           return doc;
-//         }
-//       });
-//     }
-//   });
-// }
 
 function resolveUserObjects(userList, callback) {
   if(userList.length === 0) {
@@ -188,6 +238,21 @@ function resolveUserObjects(userList, callback) {
     });
   }
 }
+
+app.get('/user/:userid', (req, res) => {
+  var userid = req.params.userid
+  db.collection('users').findOne({
+    _id: new ObjectID(userid)
+  }, (err, userData) => {
+    if (err) {
+      res.status(500).send('Database error: ' + err)
+    } else if (userData === null) {
+      res.status(400).send('User with id: ' + userid + 'does not exist')
+    } else {
+      res.status(200).send(userData)
+    }
+  })
+})
 
 /**
  * Resolves a feed item. Internal to the server, since it's synchronous.
@@ -244,7 +309,7 @@ function getFeedData(user, callback) {
       if (err) {
         return callback(err);
       } else if (feedData === null) {
-        return callback(null, null);
+        return callback(null, []);
       }
       var resolvedContents = [];
 
@@ -283,11 +348,11 @@ function getFeedData(user, callback) {
 
 app.get('/user/:userid/feed', function(req, res) {
   var userid = req.params.userid;
-  var fromUser = getUserIdFromToken(req.get('Authorization'));
+  // var fromUser = getUserIdFromToken(req.get('Authorization'));
   // userid is a string. We need it to be a number.
   // parameters are always strings.
   // var useridNumber = parseInt(userid, 10);
-  if (fromUser === userid) {
+  // if (fromUser === userid) {
     getFeedData(new ObjectID(userid), function(err, feedData) {
       if (err) {
         res.status(500).send("Database error: " + err);
@@ -297,9 +362,9 @@ app.get('/user/:userid/feed', function(req, res) {
         res.send(feedData);
       }
     });
-  } else {
-    res.status(403).end();
-  }
+  // } else {
+  //   res.status(403).end();
+  // }
 });
 
 function getLikedPlaylist(user, callback) {
@@ -325,7 +390,7 @@ function getLikedPlaylist(user, callback) {
     }
 
     if(userData.likedPlaylist.length === 0) {
-      callback(null, userData);
+      callback(null, []);
     } else {
       processNextFeedItem(0);
     }
@@ -337,9 +402,9 @@ function getLikedPlaylist(user, callback) {
 
 app.get('/user/:userid/likedplaylist', function(req, res) {
   var userid = req.params.userid;
-  var fromUser = getUserIdFromToken(req.get('Authorization'));
+  // var fromUser = getUserIdFromToken(req.get('Authorization'));
   // var useridNumber = parseInt(userid, 10);
-  if (fromUser === userid) {
+  // if (fromUser === userid) {
     getLikedPlaylist(new ObjectID(userid), function(err, playlist) {
         if (err) {
           res.status(500).send("Database error: " + err);
@@ -350,9 +415,9 @@ app.get('/user/:userid/likedplaylist', function(req, res) {
         }
     });
     // res.send(getLikedPlaylist(userid));
-  } else {
-    res.status(403).end();
-  }
+  // } else {
+  //   res.status(403).end();
+  // }
 });
 
 function getGroupHistory(user, callback) {
@@ -380,7 +445,7 @@ function getGroupHistory(user, callback) {
       }
 
       if(userData.groups.length === 0) {
-        callback(null, null);
+        callback(null, []);
       } else {
         processNextFeedItem(0);
       }
@@ -392,10 +457,10 @@ function getGroupHistory(user, callback) {
 
 app.get('/user/:userid/history', function(req, res) {
   var userid = req.params.userid;
-  var fromUser = getUserIdFromToken(req.get('Authorization'));
+  // var fromUser = getUserIdFromToken(req.get('Authorization'));
   // var useridNumber = parseInt(userid, 10);
 
-  if (fromUser === userid) {
+  // if (fromUser === userid) {
     getGroupHistory(new ObjectID(userid), function(err, group) {
       if (err) {
         res.status(500).send("Database error: " + err);
@@ -407,9 +472,9 @@ app.get('/user/:userid/history', function(req, res) {
       }
     })
     // res.send(getGroupHistory(userid));
-  } else {
-    res.status(403).end();
-  }
+  // } else {
+  //   res.status(403).end();
+  // }
 });
 
 app.get('/feeditem/:feeditemid', function(req, res) {
@@ -460,12 +525,12 @@ function likeFeedItem(feedItemId, userId, cb) {
 
 app.put('/feeditem/:feeditemid/likerlist/:userid', function(req, res) {
 
-  var fromUser = getUserIdFromToken(req.get('Authorization'));
+  // var fromUser = getUserIdFromToken(req.get('Authorization'));
   var feeditemid = req.params.feeditemid;
   // var userId = parseInt(req.params.userid, 10);
   var userId = req.params.userid;
 
-  if(fromUser == userId) {
+  // if(fromUser == userId) {
 
     likeFeedItem(new ObjectID(feeditemid), new ObjectID(userId), (err, updatedLikeCounter) => {
       if(err) {
@@ -492,7 +557,7 @@ app.put('/feeditem/:feeditemid/likerlist/:userid', function(req, res) {
   //   //   readDocument('feedItems', feedItemId)));
   // } else {
   //   res.status(401).end()
-  }
+  // }
 });
 
 // unlikeFeedItem
@@ -525,14 +590,14 @@ function unlikeFeedItem (feedItemId, userId, cb) {
 }
 
 app.delete('/feeditem/:feeditemid/likerlist/:userid', function(req, res) {
-  var fromUser = getUserIdFromToken(req.get('Authorization'));
+  // var fromUser = getUserIdFromToken(req.get('Authorization'));
   // var feedItemId = parseInt(req.params.feeditemid, 10);
   var feedItemId = req.params.feeditemid
 
   // var userId = parseInt(req.params.userid, 10);
   var userId = req.params.userid;
 
-  if(fromUser == userId) {
+  // if(fromUser == userId) {
     unlikeFeedItem(new ObjectID(feedItemId), new ObjectID(userId), (err, updatedLikeCounter) => {
       console.log(updatedLikeCounter)
       if(err) {
@@ -559,7 +624,7 @@ app.delete('/feeditem/:feeditemid/likerlist/:userid', function(req, res) {
   //     readDocument('users', userId)));
   // } else {
   //   res.status(401).end()
-  }
+  // }
 });
 
 //search spotify
@@ -570,8 +635,21 @@ app.post('/search', function(req, res) {
     .then(function(data) {
       res.send(data.body);
     }, function(err) {
-      console.error(err);
-      res.status(400).end();
+      spotifyApi.refreshAccessToken().then((data) => {
+        console.log('access token refreshed!')
+        spotifyApi.setAccessToken(data.body['access_token'])
+        spotifyApi.searchTracks(queryText, {limit:10})
+        .then((data) => {
+          res.send(data.body)
+        }, (err) => {
+          console.log(err)
+          res.status(400).end()
+        })
+      }, (err) => {
+        console.log('could not refresh access token', err)
+      })
+      // console.error(err);
+      // res.status(400).end();
     });
   }
 });
@@ -641,8 +719,21 @@ app.put('/feeditem/:feeditemid/songlist', function(req, res) {
           .then(function(data) {
             res.send(data.body);
           }, function(err) {
-            console.error(err);
-            res.status(400).end();
+            spotifyApi.refreshAccessToken().then((data) => {
+              console.log('access token refreshed!')
+              spotifyApi.setAccessToken(data.body['access_token'])
+              spotifyApi.getTracks([song])
+              .then((data) => {
+                res.send(data.body)
+              }, (err) => {
+                console.error(err)
+                res.status(400).end()
+              })
+            }, (err) => {
+              console.log('could not refresh access token', err)
+            })
+            // console.error(err);
+            // res.status(400).end();
           });
         }
       })
@@ -741,8 +832,21 @@ app.get('/feeditem/:feeditemid/spotifysonglist', function(req, res) {
         // console.log("data.body.tracks[0].name: " + data.body.tracks[0].name);
         res.send(data.body.tracks);
       }, function(err) {
-        console.error(err);
-        res.status(400).end();
+        spotifyApi.refreshAccessToken().then((data) => {
+          console.log('access token refreshed!')
+          spotifyApi.setAccessToken(data.body['access_token'])
+          spotifyApi.getTracks(spotify_list)
+          .then((data) => {
+            res.send(data.body)
+          }, (err) => {
+            console.error(err)
+            res.status(400).end()
+          })
+        }, (err) => {
+          console.log('could not refresh access token', err)
+        })
+        // console.error(err);
+        // res.status(400).end();
       });
     }
   })

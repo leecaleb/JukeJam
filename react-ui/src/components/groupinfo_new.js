@@ -7,8 +7,9 @@ import GroupPlaylist from './groupplaylist_new2'
 import SpotifySearch from './spotifysearch'
 import YoutubeSearch from './youtubesearch'
 import SearchPanel from './searchpanel'
+import { connect } from 'react-redux'
 
-export default class GroupInfo extends React.Component {
+class GroupInfo extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -25,18 +26,15 @@ export default class GroupInfo extends React.Component {
   componentDidMount () {
     document.addEventListener('mousedown', this.handleLeavePanel)
     getGroupData(this.props.groupId, (group) => {
-      this.setState({
-        groupInfo: group,
-        groupUsers: group.groupUsers
-      });
+      this.setState({groupInfo: group});
     });
   }
 
-  handleGroupPlaylist(songId, action, spotify_search) {
+  handleGroupPlaylist(song, action, spotify_search) {
     if (spotify_search) {
-      this.playlist.refresh(songId, action);
+      this.playlist.refresh(song, action);
     } else {
-      this.playlist.refreshForYoutube(songId, action);
+      this.playlist.refreshForYoutube(song, action);
     }
   }
 
@@ -75,6 +73,12 @@ export default class GroupInfo extends React.Component {
         </div>
       )
     }
+
+    let users = []
+    if (this.props.onlineUsers) {
+      users = this.props.onlineUsers
+    }
+
     return (
       <div>
         <div className="col-md-12">
@@ -83,9 +87,9 @@ export default class GroupInfo extends React.Component {
             <div className="row">
               <h1>{this.state.groupInfo.groupName}</h1>
               <div>
-                {this.state.groupUsers.map((user) => {
+                {users.map((user) => {
                   return(
-                    <Link to={"/profile/" + user._id} key={user._id}><div id="userThumb">{user.fullName}</div></Link>
+                    <Link to={"/profile/" + user.userId} key={user.userId}><div id="userThumb">{user.username}</div></Link>
                   )
                 })}
               </div>
@@ -106,3 +110,9 @@ export default class GroupInfo extends React.Component {
     )
   }
 }
+
+const GroupInfoContainer = connect((store) => ({
+  onlineUsers: store.group.userList
+}), {}) (GroupInfo)
+
+export default GroupInfoContainer

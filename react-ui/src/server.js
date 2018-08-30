@@ -22,6 +22,12 @@ function emulateServerReturn(data, cb) {
 //   return feedItem;
 // }
 
+export function getUserData(user, cb) {
+  sendXHR('GET', '/user/' + user, undefined, (xhr) => {
+    cb(JSON.parse(xhr.responseText))
+  })
+}
+
 export function getFeedData(user, cb) {
   // var userData = readDocument('users', user);
   // var feedData = readDocument('feeds', userData.feed);
@@ -30,7 +36,7 @@ export function getFeedData(user, cb) {
   // console.log("working!");
   sendXHR('GET', '/user/' + user + '/feed', undefined, (xhr) => {
     // Call the callback with the data.
-    console.error(xhr.responseText);
+    // console.error(xhr.responseText);
     cb(JSON.parse(xhr.responseText));
   });
 }
@@ -187,13 +193,13 @@ export function removeYoutubeSong(feedItemId, songId, cb) {
 
 //to find token, type node and "new Buffer(JSON.stringify({ id: "000000000000000000000004" })).toString('base64');"
 // var token = 'eyAiaWQiOiA0IH0NCg==';
-var token = 'eyJpZCI6IjAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwNCJ9';
+// var token = 'eyJpZCI6IjAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwNCJ9';
 // var token = 'eyJpZCI6ImNhbGViNzk0NyJ9'; // <-- Put your base64'd JSON token here
 
 function sendXHR(verb, resource, body, cb) {
   var xhr = new XMLHttpRequest();
   xhr.open(verb, resource);
-  xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+  // xhr.setRequestHeader('Authorization', 'Bearer ' + token);
 
   // The below comment tells ESLint that AppError is a global.
   // Otherwise, ESLint would complain about it! (See what happens in Atom if

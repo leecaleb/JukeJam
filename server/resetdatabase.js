@@ -7,10 +7,10 @@ var initialData = {
     // This user has id "1".
     "1": {
       "_id": new ObjectID("000000000000000000000001"),
-      "fullName": "Someone",
+      "fullName": "q3vtjiig6bwgyicjety7m5644",
       "img": "img/girf.jpg",
       "feed": new ObjectID("000000000000000000000001"),
-      "groups": [new ObjectID("000000000000000000000002")],
+      "groups": [new ObjectID("000000000000000000000002"), new ObjectID("000000000000000000000001")],
       "likedPlaylist":[new ObjectID("000000000000000000000001")]
     },
     "2": {
@@ -25,7 +25,7 @@ var initialData = {
       "fullName": "Another Person",
       "img": "img/user2.png",
       "feed": new ObjectID("000000000000000000000003"),
-      "groups": [],
+      "groups": [new ObjectID("000000000000000000000001")],
       "likedPlaylist":[new ObjectID("000000000000000000000002")]
     },
     // This is me!
@@ -42,7 +42,7 @@ var initialData = {
     "4": {
       "_id": new ObjectID("000000000000000000000004"),
       // Listing of FeedItems in the feed.
-      "contents": [new ObjectID("000000000000000000000001")]
+      "contents": [new ObjectID("000000000000000000000001"), new ObjectID("000000000000000000000002")]
     },
     "3": {
       "_id": new ObjectID("000000000000000000000003"),

@@ -1,10 +1,12 @@
-import React from 'react';
+import React from 'react'
 import FeedItem from './feedItem'
 import ErrorBanner from './errorbanner'
 import SideBar from './sidebar'
-import {getFeedData} from '../server';
+import {getFeedData} from '../server'
+import { connect } from 'react-redux'
+import { getPlaylist } from '../actions/index'
 
-export default class MainFeed extends React.Component {
+class MainFeed extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -12,7 +14,7 @@ export default class MainFeed extends React.Component {
     };
   }
 
-  componentDidMount() {
+  componentWillMount() {
     getFeedData(this.props.user, (feedData) => {
       this.setState(feedData);
     });
@@ -46,3 +48,15 @@ export default class MainFeed extends React.Component {
     )
   }
 }
+
+// const mapDispatchToProps = dispatch => ({
+//   dispatch: () => {
+//     dispatch(getPlaylist())
+//   }
+// })
+
+// const MainFeedContainer = connect((store) => ({
+//   feedData: store.feedData.feedData
+// }), {}) (MainFeed)
+//
+export default MainFeed

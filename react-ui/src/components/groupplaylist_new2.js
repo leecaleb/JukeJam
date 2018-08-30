@@ -2,9 +2,11 @@ import React from 'react'
 import SongDisplay from './songdisplay'
 import PlayingSongDisplay from './playingsongdisplay'
 import {getGroupData, getPlaylist, getYoutubePlaylist} from '../server'
+import {connect} from 'react-redux'
+import { bindActionCreators } from 'redux'
+import { loadPlaylist, playNext } from '../actions/index'
 
-
-export default class GroupPlaylist extends React.Component {
+class GroupPlaylist extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -16,11 +18,12 @@ export default class GroupPlaylist extends React.Component {
       startPlay: false,
       playing_song: [],
       next_song: [],
-      selected_id: 4
+      selected_id: 0
     };
   }
 
-  componentDidMount() {
+  componentWillMount() {
+    console.log(this.props.group)
     this.props.onRef(this);
     getGroupData(this.props.groupId, (groupinfo) => {
       this.setState({
@@ -75,6 +78,7 @@ export default class GroupPlaylist extends React.Component {
   }
 
   updatePlaylist() {
+    console.log('updatePlaylist')
       var playlistArr = [];
       var spotify = this.state.songs.spotify;
       var youtube = this.state.songs.youtube;
@@ -98,13 +102,9 @@ export default class GroupPlaylist extends React.Component {
           }
         }
       }
-      var selected_id = this.state.selected_id
-      // console.log('here')
-      this.setState({
-        playlist: playlistArr,
-        playing_song: [playlistArr[selected_id]],
-        next_song: playlistArr.slice(selected_id+1, playlistArr.length)
-      });
+      var selected_id = this.props.group.selected_id
+      this.props.loadPlaylist([playlistArr[selected_id]], playlistArr.slice(selected_id+1, playlistArr.length))
+
   }
 
   handlePlay() {
@@ -127,18 +127,9 @@ export default class GroupPlaylist extends React.Component {
     }, this.playsong.handlePause())
   }
 
-  playNext() {
-    var new_next_song = this.state.next_song
-    new_next_song.splice(0,1)
-    if (this.state.selected_id+1 < this.state.playlist.length) {
-      this.setState({
-        selected_id: ++this.state.selected_id,
-        playing_song: [this.state.playlist[this.state.selected_id]],
-        next_song: new_next_song
-      }, () => {
-        this.handlePlay()
-      });
-    }
+  playNextSong () {
+    this.props.playNext([this.props.group.playlist[0]])
+    this.handlePlay()
   }
 
   buildChildren (song) {
@@ -155,25 +146,31 @@ export default class GroupPlaylist extends React.Component {
   }
 
   render() {
+    console.log(this.props.group)
+
+    let cur_song = []
+    if (this.props.group.currentSong) {
+      cur_song = this.props.group.currentSong
+    }
     return (
       <div>
         <div className="col-md-12 group_playlist">
           <div className="row player">
-            {this.state.playing_song.map((song) => {
-              return (
-                  <PlayingSongDisplay
-                    key={0}
-                    data={song}
-                    songId={song.id}
-                    groupId={this.props.groupId}
-                    playNext={this.playNext.bind(this)}
-                    startPlay={this.state.startPlay}
-                    onRef={ref => this.playsong = ref} />
-              )
-            })}
+          {cur_song.map((song) => {
+            return (
+                <PlayingSongDisplay
+                  key={0}
+                  data={song}
+                  songId={song.id}
+                  groupId={this.props.groupId}
+                  playNextSong={this.playNextSong.bind(this)}
+                  startPlay={this.state.startPlay}
+                  onRef={ref => this.playsong = ref} />
+            )
+          })}
           </div>
           <div className="row">
-            {this.state.next_song.map(this.buildChildren.bind(this))}
+            {this.props.group.playlist.map(this.buildChildren.bind(this))}
           </div>
         </div>
       </div>
@@ -181,3 +178,15 @@ export default class GroupPlaylist extends React.Component {
     )
   }
 }
+
+const mapDispatchToProps = (dispatch) => {
+  return {
+    ...bindActionCreators({ loadPlaylist, playNext }, dispatch)
+  }
+}
+
+const GroupPlaylistContainer = connect((store) => ({
+  group: store.group
+}), mapDispatchToProps) (GroupPlaylist)
+
+export default GroupPlaylistContainer

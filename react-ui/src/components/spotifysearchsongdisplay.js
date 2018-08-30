@@ -2,8 +2,11 @@ import React from 'react'
 import ReactAudioPlayer from 'react-audio-player'
 import Youtube from 'react-youtube'
 import {addSong, removeSong, getGroupData, getPlaylist} from '../server'
+import { addNewSong } from '../actions/index'
+import { connect } from 'react-redux'
+import { bindActionCreators } from 'redux'
 
-export default class SpotifySearchSongDisplay extends React.Component {
+class SpotifySearchSongDisplay extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -39,11 +42,13 @@ export default class SpotifySearchSongDisplay extends React.Component {
   handleAdd() {
     addSong(this.props.groupId, this.props.songId, (addedSong) => {
       // this.props.handleGroupPlaylist(addedSong, 1)
-      var updatedSongList = this.state.songIdList
-      updatedSongList.push(addedSong.tracks[0].id)
-      this.setState({
-        songIdList: updatedSongList
-      }, this.props.handleGroupPlaylist(addedSong, 1))
+      // var updatedSongList = this.state.songIdList
+      // updatedSongList.push(addedSong.tracks[0].id)
+      this.props.addNewSong(addedSong.tracks[0])
+      this.props.handleGroupPlaylist(addedSong, 1)
+      // this.setState({
+      //   songIdList: updatedSongList
+      // }, this.props.handleGroupPlaylist(addedSong, 1))
     })
   }
 
@@ -155,3 +160,12 @@ export default class SpotifySearchSongDisplay extends React.Component {
     )
   }
 }
+
+const mapDispatchToProps = (dispatch) => {
+  return {
+    ...bindActionCreators({ addNewSong }, dispatch)
+  }
+}
+
+const SongDisplayContainer = connect(() => ({}), mapDispatchToProps) (SpotifySearchSongDisplay)
+export default SongDisplayContainer

@@ -1,8 +1,11 @@
 import React from 'react'
 import Youtube from 'react-youtube'
 import {addYoutubeSong, removeSong, getGroupData} from '../server'
+import { connect } from 'react-redux'
+import { bindActionCreators } from 'redux'
+import { addNewSong } from '../actions/index'
 
-export default class YoutubePlayer extends React.Component {
+class YoutubePlayer extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -22,13 +25,14 @@ export default class YoutubePlayer extends React.Component {
 
   handleAdd() {
     addYoutubeSong(this.props.groupId, this.props.videoId, (addedsonginfo) => {
-      var updatedSongList = this.state.songidlist
-      updatedSongList.push(addedsonginfo[0].id)
-      this.setState({
-        songidlist: updatedSongList
-      },
+      this.props.addNewSong(addedsonginfo[0])
+      // var updatedSongList = this.state.songidlist
+      // updatedSongList.push(addedsonginfo[0].id)
+      // this.setState({
+      //   songidlist: updatedSongList
+      // },
       this.props.handleGroupPlaylist(addedsonginfo, 1)
-      );
+      // );
     });
   }
 
@@ -100,3 +104,10 @@ export default class YoutubePlayer extends React.Component {
     )
   }
 }
+const mapDispatchToProps = (dispatch) => {
+  return {
+    ...bindActionCreators({addNewSong}, dispatch)
+  }
+}
+const SongDisplayContainer = connect(() => ({}), mapDispatchToProps) (YoutubePlayer)
+export default SongDisplayContainer
