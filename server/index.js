@@ -123,8 +123,8 @@ app.listen(PORT, function () {
   console.log(`Listening on port ${PORT}`);
 });
 
-var client_id = 'f926d557a44541e09a2d7f32ffd20969';
-var client_secret = 'aa0e13cf32a849c59db84aa9e6e8b4a1';
+var client_id = 'CLIENT_ID';
+var client_secret = 'CLIENT_SECRET';
 // var redirect_uri = 'https://guarded-fortress-64455.herokuapp.com/callback'; // Your redirect uri
 var redirect_uri = 'http://localhost:5000/callback'; // Your redirect uri
 // var redirect_uri = 'https://whispering-chamber-83498.herokuapp.com/callback'; // Your redirect uri
