@@ -4,18 +4,12 @@ var app = express()
 var bodyParser = require('body-parser')
 var querystring = require('querystring')
 var cookieParser = require('cookie-parser')
-// var database = require('./database.js');
-// var readDocument = database.readDocument;
 var validate = require('express-jsonschema').validate
-// var writeDocument = database.writeDocument;
-// var addDocument = database.addDocument;
-// var dataCollection = database.dataCollection;
 var passport = require('passport')
 var request = require('request')
 
 // SOCKET
 var WebSocket = require('ws')
-// var wss = new WebSocket.Server('ws://localhost:3000/group/000000000000000000000001/to/ws')
 var wss = new WebSocket.Server({ port:8989 })
 const users = []
 const sockets = []
@@ -29,14 +23,15 @@ const broadcast = (data, ws) => {
 
 wss.on('connection', (ws) => {
   sockets.push(ws)
+  var user
   ws.on('message', (message) => {
     const data = JSON.parse(message)
+    user = {
+      userId: data.userId,
+      username: data.username
+    }
     switch (data.type) {
       case 'ADD_USER_SUCCESS': {
-        user = {
-          userId: data.userId,
-          username: data.username
-        }
         users.push(user)
         ws.send(JSON.stringify({
           type: 'ONLINE_USER_LIST',
@@ -66,7 +61,6 @@ wss.on('connection', (ws) => {
     }
   })
   ws.on('close', () => {
-    console.log('socket closed')
     var index = users.indexOf(user)
     users.splice(index, 1)
     broadcast({
@@ -76,11 +70,6 @@ wss.on('connection', (ws) => {
   })
 })
 
-// var mongo_express = require('mongo-express/lib/middleware');
-// // Import the default Mongo Express configuration
-// var mongo_express_config = require('mongo-express/config.js');
-// app.use('/mongo_express', mongo_express(mongo_express_config));
-
 var MongoClient = require('mongodb').MongoClient
 var ObjectID = require('mongodb').ObjectID
 var DBurl = 'mongodb://heroku_39clj157:gvpqlgnmmekbcronm1dvdojdcu@ds235775.mlab.com:35775/heroku_39clj157'
@@ -89,42 +78,18 @@ MongoClient.connect(DBurl, function(err, db) {
 
 app.use(cookieParser())
 
-// app.use(express.static('./public'));
 // Priority serve any static files.
 app.use(express.static(path.resolve(__dirname, '../react-ui/build')))
-// app.use('/*', express.static(path.resolve(__dirname, '../react-ui/build')));
 app.use(passport.initialize())
 app.use(passport.session())
-
-
-// var port = process.env.PORT || 3000;
-//
-// app.listen(port, function () {
-//     console.log('Server running at http://127.0.0.1:' + port + '/');
-// });
-
-// app.use(function(req, res, next) {
-//   res.header("Access-Control-Allow-Origin", "*");
-//   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-//   if (req.method === 'OPTIONS') {
-//     return res.send(200);
-//   } else {
-//     return next();
-//   }
-// });
-
-// // All remaining requests return the React app, so it can handle routing.
-// app.get('*', function(request, response) {
-//   response.sendFile(path.resolve(__dirname, '../react-ui/build', 'index.html'));
-// });
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, function () {
   console.log(`Listening on port ${PORT}`);
 });
 
-var client_id = 'CLIENT_ID';
-var client_secret = 'CLIENT_SECRET';
+var client_id = 'f926d557a44541e09a2d7f32ffd20969';
+var client_secret = '1bec0031a63c470ca2e8e21172b3be84';
 // var redirect_uri = 'https://guarded-fortress-64455.herokuapp.com/callback'; // Your redirect uri
 var redirect_uri = 'http://localhost:5000/callback'; // Your redirect uri
 // var redirect_uri = 'https://whispering-chamber-83498.herokuapp.com/callback'; // Your redirect uri
@@ -132,7 +97,6 @@ var redirect_uri = 'http://localhost:5000/callback'; // Your redirect uri
 
 var SpotifyWebApi = require('spotify-web-api-node');
 
-// credentials are optional
 var spotifyApi = new SpotifyWebApi({
   clientId : client_id,
   clientSecret : client_secret,
@@ -257,38 +221,29 @@ app.get('/user/:userid', (req, res) => {
 /**
  * Resolves a feed item. Internal to the server, since it's synchronous.
  */
- function getFeedItem(feedItemId, callback) {
-   db.collection('feedItems').findOne({
-     _id: feedItemId
-   }, function(err, feedItem) {
-     if (err) {
-       return callback(err);
-     } else if (feedItem === null) {
-       return callback(null, null);
-     }
-     var userList = [feedItem.author];
-     userList = userList.concat(feedItem.likerList);
-     userList = userList.concat(feedItem.groupUsers);
-     resolveUserObjects(userList, function(err, userMap) {
-       if (err) {
-         return callback(err);
-       }
-       feedItem.author = userMap[feedItem.author];
-       feedItem.likerList = feedItem.likerList.map((userId) => userMap[userId]);
-       feedItem.groupUsers = feedItem.groupUsers.map((userId) => userMap[userId]);
-       callback(null, feedItem);
-     });
-   });
- }
-   // var feedItem = readDocument('feedItems', feedItemId);
-   // feedItem.likerList =
-   //   feedItem.likerList.map((id) => readDocument('users', id));
-   // feedItem.author =
-   //   readDocument('users', feedItem.author);
-   // feedItem.groupUsers =
-   //   feedItem.groupUsers.map((id) => readDocument('users', id));
- //   return feedItem;
- // }
+function getFeedItem(feedItemId, callback) {
+  db.collection('feedItems').findOne({
+    _id: feedItemId
+  }, function(err, feedItem) {
+    if (err) {
+      return callback(err);
+    } else if (feedItem === null) {
+      return callback(null, null);
+    }
+    var userList = [feedItem.author];
+    userList = userList.concat(feedItem.likerList);
+    userList = userList.concat(feedItem.groupUsers);
+    resolveUserObjects(userList, function(err, userMap) {
+      if (err) {
+        return callback(err);
+      }
+      feedItem.author = userMap[feedItem.author];
+      feedItem.likerList = feedItem.likerList.map((userId) => userMap[userId]);
+      feedItem.groupUsers = feedItem.groupUsers.map((userId) => userMap[userId]);
+      callback(null, feedItem);
+    });
+  });
+}
 
 /**
  * Emulates a REST call to get the feed data for a particular user.
@@ -337,22 +292,10 @@ function getFeedData(user, callback) {
       }
     });
   });
-  // var userData = readDocument('users', user);
-  // var feedData = readDocument('feeds', userData.feed);
-  // While map takes a callback, it is synchronous, not asynchronous.
-  // It calls the callback immediately.
-  // feedData.contents = feedData.contents.map(getFeedItemSync);
-  // Return FeedData with resolved references.
-  // return feedData;
 }
 
 app.get('/user/:userid/feed', function(req, res) {
   var userid = req.params.userid;
-  // var fromUser = getUserIdFromToken(req.get('Authorization'));
-  // userid is a string. We need it to be a number.
-  // parameters are always strings.
-  // var useridNumber = parseInt(userid, 10);
-  // if (fromUser === userid) {
     getFeedData(new ObjectID(userid), function(err, feedData) {
       if (err) {
         res.status(500).send("Database error: " + err);
@@ -362,9 +305,6 @@ app.get('/user/:userid/feed', function(req, res) {
         res.send(feedData);
       }
     });
-  // } else {
-  //   res.status(403).end();
-  // }
 });
 
 function getLikedPlaylist(user, callback) {
@@ -395,16 +335,10 @@ function getLikedPlaylist(user, callback) {
       processNextFeedItem(0);
     }
   });
-  // var userData = readDocument('users', user);
-  // var likedPlaylist = userData.likedPlaylist.map(getFeedItem);
-  // return likedPlaylist;
 }
 
 app.get('/user/:userid/likedplaylist', function(req, res) {
   var userid = req.params.userid;
-  // var fromUser = getUserIdFromToken(req.get('Authorization'));
-  // var useridNumber = parseInt(userid, 10);
-  // if (fromUser === userid) {
     getLikedPlaylist(new ObjectID(userid), function(err, playlist) {
         if (err) {
           res.status(500).send("Database error: " + err);
@@ -414,10 +348,6 @@ app.get('/user/:userid/likedplaylist', function(req, res) {
           res.send(playlist);
         }
     });
-    // res.send(getLikedPlaylist(userid));
-  // } else {
-  //   res.status(403).end();
-  // }
 });
 
 function getGroupHistory(user, callback) {
@@ -450,17 +380,10 @@ function getGroupHistory(user, callback) {
         processNextFeedItem(0);
       }
   });
-  // var userData = readDocument('users', user);
-  // userData.groups = userData.groups.map(getFeedItem);
-  // return userData.groups;
 }
 
 app.get('/user/:userid/history', function(req, res) {
   var userid = req.params.userid;
-  // var fromUser = getUserIdFromToken(req.get('Authorization'));
-  // var useridNumber = parseInt(userid, 10);
-
-  // if (fromUser === userid) {
     getGroupHistory(new ObjectID(userid), function(err, group) {
       if (err) {
         res.status(500).send("Database error: " + err);
@@ -471,10 +394,6 @@ app.get('/user/:userid/history', function(req, res) {
         res.send(group);
       }
     })
-    // res.send(getGroupHistory(userid));
-  // } else {
-  //   res.status(403).end();
-  // }
 });
 
 app.get('/feeditem/:feeditemid', function(req, res) {
@@ -488,11 +407,9 @@ app.get('/feeditem/:feeditemid', function(req, res) {
       res.send(feeditem);
     }
   })
-  // res.send(getFeedItem(feeditemid));
 });
 
 // likeFeedItem
-
 function likeFeedItem(feedItemId, userId, cb) {
   db.collection('users').updateOne({
     _id: userId
@@ -518,19 +435,13 @@ function likeFeedItem(feedItemId, userId, cb) {
       updatedLikeCounter = updatedLikeCounter.map((userId) => userMap[userId]);
       cb(null, updatedLikeCounter);
     });
-
-    // cb(null, feedItemData)
   })
 }
 
 app.put('/feeditem/:feeditemid/likerlist/:userid', function(req, res) {
 
-  // var fromUser = getUserIdFromToken(req.get('Authorization'));
   var feeditemid = req.params.feeditemid;
-  // var userId = parseInt(req.params.userid, 10);
   var userId = req.params.userid;
-
-  // if(fromUser == userId) {
 
     likeFeedItem(new ObjectID(feeditemid), new ObjectID(userId), (err, updatedLikeCounter) => {
       if(err) {
@@ -541,27 +452,9 @@ app.put('/feeditem/:feeditemid/likerlist/:userid', function(req, res) {
         res.send(updatedLikeCounter);
       }
     });
-
-  //   var feedItem = readDocument('feedItems', feedItemId);
-  //   // Normally, we would check if the user already liked this comment.
-  //   // But we will not do that in this mock server.
-  //   // ('push' modifies the array by adding userId to the end)
-  //   feedItem.likerList.push(userId);
-  //   writeDocument('feedItems', feedItem);
-  //   var user = readDocument('users', userId);
-  //   user.likedPlaylist.push(feedItemId);
-  //   writeDocument('users', user);
-  //   res.send(feedItem.likerList.map((userId) =>
-  //     readDocument('users', userId)));
-  //   // res.send(user.likedPlaylist.map((feedItemId) =>
-  //   //   readDocument('feedItems', feedItemId)));
-  // } else {
-  //   res.status(401).end()
-  // }
 });
 
 // unlikeFeedItem
-
 function unlikeFeedItem (feedItemId, userId, cb) {
     db.collection('users').updateOne({
       _id: userId
@@ -590,41 +483,18 @@ function unlikeFeedItem (feedItemId, userId, cb) {
 }
 
 app.delete('/feeditem/:feeditemid/likerlist/:userid', function(req, res) {
-  // var fromUser = getUserIdFromToken(req.get('Authorization'));
-  // var feedItemId = parseInt(req.params.feeditemid, 10);
   var feedItemId = req.params.feeditemid
-
-  // var userId = parseInt(req.params.userid, 10);
   var userId = req.params.userid;
-
-  // if(fromUser == userId) {
-    unlikeFeedItem(new ObjectID(feedItemId), new ObjectID(userId), (err, updatedLikeCounter) => {
-      console.log(updatedLikeCounter)
-      if(err) {
-        res.status(500).send("Database error: " + err)
-      } else if (updatedLikeCounter === null) {
-        res.status(400).send("Could not look up feedItem: " + feedItemId)
-      } else {
-        res.send(updatedLikeCounter)
-      }
-    })
-  //   var feedItem = readDocument('feedItems', feedItemId);
-  //   var likeIndex = feedItem.likerList.indexOf(userId);
-  //   if(likeIndex !== -1) {
-  //     feedItem.likerList.splice(likeIndex, 1);
-  //     writeDocument('feedItems', feedItem);
-  //   }
-  //   var user = readDocument('users', userId);
-  //   var groupIndex = user.likedPlaylist.indexOf(feedItemId);
-  //   if(groupIndex !== -1) {
-  //     user.likedPlaylist.splice(feedItemId, 1);
-  //     writeDocument('users', user);
-  //   }
-  //   res.send(feedItem.likerList.map((userId) =>
-  //     readDocument('users', userId)));
-  // } else {
-  //   res.status(401).end()
-  // }
+  unlikeFeedItem(new ObjectID(feedItemId), new ObjectID(userId), (err, updatedLikeCounter) => {
+    console.log(updatedLikeCounter)
+    if(err) {
+      res.status(500).send("Database error: " + err)
+    } else if (updatedLikeCounter === null) {
+      res.status(400).send("Could not look up feedItem: " + feedItemId)
+    } else {
+      res.send(updatedLikeCounter)
+    }
+  })
 });
 
 //search spotify
@@ -648,8 +518,6 @@ app.post('/search', function(req, res) {
       }, (err) => {
         console.log('could not refresh access token', err)
       })
-      // console.error(err);
-      // res.status(400).end();
     });
   }
 });
@@ -772,9 +640,6 @@ function removeSpotifySong (feedItemId, songId, cb) {
 app.delete('/feeditem/:feeditemid/songlist/:songId', function(req, res) {
     var song = req.params.songId.trim();
     var feedItemId = req.params.feeditemid
-    // var feedItem = readDocument('feedItems', feedItemId);
-    // var songIdIndex = -1;
-    // var spotify = feedItem.songs.spotify;
     var songidlist = [];
     removeSpotifySong( new ObjectID(feedItemId), song, (err, feedItemData) => {
       if(err) {
@@ -782,12 +647,6 @@ app.delete('/feeditem/:feeditemid/songlist/:songId', function(req, res) {
       } else if (feedItemData === null) {
         res.status(400).send("Could not find feedItem " + feedItemId)
       } else {
-        // feedItemData.value.songs.spotify.forEach((obj) => {
-        //   songidlist.push(obj._id)
-        // })
-        // console.log(songidlist)
-
-        // send the removed song
         spotifyApi.getTracks([song])
         .then(function(data) {
           res.send(data.body);
@@ -797,17 +656,6 @@ app.delete('/feeditem/:feeditemid/songlist/:songId', function(req, res) {
         });
       }
     })
-    // for(var i = 0; i < spotify.length; ++i) {
-    //   if(spotify[i]._id === song) {
-    //     songIdIndex = i;
-    //   } else {
-    //     songidlist.push(spotify[i]._id);
-    //   }
-    // }
-    // if(songIdIndex !== -1) {
-    //   feedItem.songs.spotify.splice(songIdIndex, 1);
-    //   writeDocument('feedItems', feedItem);
-    // }
 });
 
 //get group's songs from spotify
@@ -815,10 +663,8 @@ app.get('/feeditem/:feeditemid/spotifysonglist', function(req, res) {
   var feeditemid = req.params.feeditemid;
   getFeedItem(new ObjectID(feeditemid), function(err, feeditem) {
     if(err) {
-      // console.log("err: " + err);
       res.status(500).send("Database error: " + err);
     } else if (feeditem === null) {
-      // console.log("null!!!!");
       res.status(400).send("Could not look up feeditem " + feeditemid);
     } else {
       var spotify = feeditem.songs.spotify;
@@ -826,10 +672,8 @@ app.get('/feeditem/:feeditemid/spotifysonglist', function(req, res) {
       for(var i = 0; i < spotify.length; ++i) {
         spotify_list.push(spotify[i]._id);
       }
-      // res.send(feeditem);
       spotifyApi.getTracks(spotify_list)
       .then(function(data) {
-        // console.log("data.body.tracks[0].name: " + data.body.tracks[0].name);
         res.send(data.body.tracks);
       }, function(err) {
         spotifyApi.refreshAccessToken().then((data) => {
@@ -845,29 +689,9 @@ app.get('/feeditem/:feeditemid/spotifysonglist', function(req, res) {
         }, (err) => {
           console.log('could not refresh access token', err)
         })
-        // console.error(err);
-        // res.status(400).end();
       });
     }
   })
-
-  // var feedItemId = parseInt(req.params.feeditemid, 10);
-  // var feedItem = readDocument('feedItems', feedItemId);
-  // // console.log(feedItem.songs.spotify);
-  // var spotify = feedItem.songs.spotify;
-  // var spotify_list = [];
-  // for(var i = 0; i < spotify.length; ++i) {
-  //   spotify_list.push(spotify[i]._id);
-  // }
-  // // console.log(spotify_list);
-  // spotifyApi.getTracks(spotify_list)
-  // .then(function(data) {
-  //   // console.log("data.body.tracks[0].name: " + data.body.tracks[0].name);
-  //   res.send(data.body.tracks);
-  // }, function(err) {
-  //   console.error(err);
-  //   res.status(400).end();
-  // });
 });
 
 //get group's songs from youtube
@@ -876,10 +700,8 @@ app.get('/feeditem/:feeditemid/youtubesonglist', function(req, res) {
   var feeditemid = req.params.feeditemid;
   getFeedItem(new ObjectID(feeditemid), function(err, feeditem) {
     if(err) {
-      // console.log("err: " + err);
       res.status(500).send("Database error: " + err);
     } else if (feeditem === null) {
-      // console.log("null!!!!");
       res.status(400).send("Could not look up feeditem " + feeditemid);
     } else {
       var youtube = feeditem.songs.youtube;
@@ -933,22 +755,12 @@ app.put('/feeditem/:feeditemid/youtubesonglist', function(req, res) {
   if(typeof(req.body) === 'string') {
       var song = req.body.trim();
       var feedItemId = req.params.feeditemid
-      // var feedItem = readDocument('feedItems', feedItemId);
-      // var nextInd = feedItem.songs.spotify.length + feedItem.songs.youtube.length;
-
-      // var newObj = {
-      //     "index": nextInd,
-      //     "_id": song
-      // }
-      // feedItem.songs.youtube.push(newObj);
-      // writeDocument('feedItems', feedItem);
       addYoutubeSong (new ObjectID(feedItemId), song, (err, feedItemData) => {
         if(err) {
           res.status(500).send("Database err: " + err)
         } else if (feedItemData === null) {
           res.status(400).send("Could not find feedItem " + feedItemId)
         } else {
-          // console.log(feedItemData)
         }
       })
       var service = google.youtube('v3');
@@ -965,15 +777,6 @@ app.put('/feeditem/:feeditemid/youtubesonglist', function(req, res) {
       })
   }
 });
-
-// // Reset database.
-// app.post('/resetdb', function(req, res) {
-//   console.log("Resetting database...");
-//   // This is a debug route, so don't do any validation.
-//   database.resetDatabase();
-//   // res.send() sends an empty response with status code 200
-//   res.send();
-// });
 
 /**
 * Get the user ID from a token. Returns -1 (an invalid ID)

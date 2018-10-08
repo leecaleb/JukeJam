@@ -115,7 +115,7 @@ var initialData = {
       // "img": "../public/img/user2.png",
       "postDate": 1453668480000,
       "location": "Austin, TX",
-      "groupUsers": [new ObjectID("000000000000000000000001"),new ObjectID("000000000000000000000002")],
+      "groupUsers": [new ObjectID("000000000000000000000001"),new ObjectID("000000000000000000000002"), new ObjectID("000000000000000000000004")],
       "songs": {
         "totalSongs": 1,
         "selected_id": 0,

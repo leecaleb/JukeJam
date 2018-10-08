@@ -51,6 +51,16 @@ export default class FeedItem extends React.Component {
     return liked;
   }
 
+  auth() {
+    var authorized = false;
+    for(var i = 0; i < this.state.groupUsers.length; i++){
+      if(this.state.groupUsers[i]._id === this.props.user){
+        authorized = true;
+        break;
+      }
+    }
+    return authorized;
+  }
 
   render() {
     var likeButton = [];
@@ -98,16 +108,26 @@ export default class FeedItem extends React.Component {
                 </button>
               </div>
             </div>
-
-            <div className="col-md-8">
-              <div className="panel panel-default group-content">
-                <div className="panel-heading group-header">
-                  <h2 className="panel-title"><b><Link to={"/group/" + this.state._id}>{this.state.groupName}</Link></b>
-                  <small> by <Link to={"/profile/" + this.state.author._id}>{this.state.author.fullName}</Link></small></h2>
+            {this.auth() ?
+              <div className="col-md-8">
+                <div className="panel panel-default group-content">
+                  <div className="panel-heading group-header">
+                    <h2 className="panel-title"><b><Link to={"/group/" + this.state._id}>{this.state.groupName}</Link></b>
+                    <small> by <Link to={"/profile/" + this.state.author._id}>{this.state.author.fullName}</Link></small></h2>
+                  </div>
+                  <FeedItemPlaylist length={this.state.songs.length} feedItemId={this.state._id}/>
                 </div>
-                <FeedItemPlaylist length={this.state.songs.length} feedItemId={this.state._id}/>
               </div>
-            </div>
+            : <div className="col-md-8">
+                <div className="panel panel-default group-content">
+                  <div className="panel-heading group-header">
+                    <h2 className="panel-title"><b><Link to={"/group/" + this.state._id + "/" + this.state.groupName}>{this.state.groupName}</Link></b>
+                    <small> by <Link to={"/profile/" + this.state.author._id}>{this.state.author.fullName}</Link></small></h2>
+                  </div>
+                  <FeedItemPlaylist length={this.state.songs.length} feedItemId={this.state._id}/>
+                </div>
+              </div>
+            }
           </div>
         </div>
       </div>

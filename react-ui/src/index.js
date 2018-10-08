@@ -45,10 +45,12 @@ class ProfilePage extends React.Component {
   }
 }
 
+var sock
+
 class GroupAuthed extends React.Component {
 
   componentDidMount () {
-    // console.log(store.getState())
+    console.log('mounted')
     var loc = window.location
     var new_url = ''
     if (loc.protoccol === 'https:') {
@@ -59,6 +61,7 @@ class GroupAuthed extends React.Component {
     new_url+='//' + loc.host + loc.pathname
     const socket = setupSocket(store.dispatch, new_url, store.getState().user)
     sagaMiddleware.run(rootSaga, { socket })
+    sock = socket
   }
 
   render() {
@@ -103,7 +106,7 @@ ReactDOM.render((
         <IndexRoute component={HomePage} />
         <Route path="user/:id" component={MainPage} />
         <Route path="profile/:id" component={ProfilePage}/>
-        <Route path="group/:id" component={GroupAuthed} />
+        <Route path="group/:id" onLeave={() => sock.close()} component={GroupAuthed} />
         <Route path="group/:id/:grouptitle" component={GroupProfile} />
       </Route>
     </Router>

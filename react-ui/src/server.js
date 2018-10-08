@@ -1,27 +1,5 @@
 import {readDocument, writeDocument, addDocument} from './database.js';
 
-/**
- * Emulates how a REST call is *asynchronous* -- it calls your function back
- * some time in the future with data.
- */
-function emulateServerReturn(data, cb) {
-  // console.log("contents: " + data.contents);
-  setTimeout(() => {
-    cb(data);
-  }, 4);
-}
-
-// function getFeedItemSync(feedItemId) {
-//   var feedItem = readDocument('feedItems', feedItemId);
-//   feedItem.likerList =
-//     feedItem.likerList.map((id) => readDocument('users', id));
-//   feedItem.author =
-//     readDocument('users', feedItem.author);
-//   feedItem.groupUsers =
-//     feedItem.groupUsers.map((id) => readDocument('users', id));
-//   return feedItem;
-// }
-
 export function getUserData(user, cb) {
   sendXHR('GET', '/user/' + user, undefined, (xhr) => {
     cb(JSON.parse(xhr.responseText))
@@ -29,28 +7,19 @@ export function getUserData(user, cb) {
 }
 
 export function getFeedData(user, cb) {
-  // var userData = readDocument('users', user);
-  // var feedData = readDocument('feeds', userData.feed);
-  // feedData.contents = feedData.contents.map(getFeedItemSync);
-  // emulateServerReturn(feedData, cb);
-  // console.log("working!");
   sendXHR('GET', '/user/' + user + '/feed', undefined, (xhr) => {
-    // Call the callback with the data.
-    // console.error(xhr.responseText);
     cb(JSON.parse(xhr.responseText));
   });
 }
 
 export function getLikedPlaylist(user, cb) {
   sendXHR('GET', '/user/' + user + '/likedplaylist', undefined, (xhr) => {
-    // console.warn(xhr.responseText);
     cb(JSON.parse(xhr.responseText));
   });
 }
 
 export function getGroupHistory(user, cb) {
   sendXHR('GET', '/user/' + user + '/history', undefined, (xhr) => {
-    // console.warn(xhr.responseText);
     cb(JSON.parse(xhr.responseText));
   });
 }
@@ -86,18 +55,6 @@ export function searchYoutube(queryText, cb) {
     cb(JSON.parse(xhr.responseText));
   });
 }
-
-// export function login(cb) {
-//   sendXHR('GET', '/login', undefined, (xhr) => {
-//     window.location = xhr.responseText;
-//   });
-// }
-//
-// export function auth() {
-//   sendXHR('POST', '/auth/spotify', undefined, (xhr) => {
-//     console.log(xhr.responseText);
-//   });
-// }
 
 export function addSong(feedItemId, songId, cb) {
   sendXHR('PUT', '/feeditem/' + feedItemId + '/songlist', songId, (xhr) => {
