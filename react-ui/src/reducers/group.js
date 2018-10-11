@@ -40,7 +40,6 @@ export default function group(state={
       }
     }
     case 'PLAY_NEXT': {
-      console.log('group: playing next')
       return {
         ...state,
         selected_id: state.selected_id+1,
@@ -49,12 +48,20 @@ export default function group(state={
       }
     }
     case 'NEXT_SONG': {
-      console.log('group: next song')
       return {
         ...state,
         selected_id: state.selected_id+1,
         currentSong: action.nextSong,
         playlist: state.playlist.slice(1,state.playlist.length)
+      }
+    }
+    case 'CLEAR_PLAYLIST': {
+      return {
+        userList: [],
+        playlist: [],
+        currentSong: [],
+        selected_id: 0,
+        votes: 0
       }
     }
     case 'UPVOTE': {

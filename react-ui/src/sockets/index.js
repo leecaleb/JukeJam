@@ -1,10 +1,8 @@
 import * as types from '../constants/ActionTypes'
-import { addUser, loadUserList, newSongAdded, nextSong } from '../actions'
+import { addUser, loadUserList, newSongAdded, nextSong, clearPlaylist } from '../actions'
 
 export const setupSocket = (dispatch, url, userData) => {
-  // const socket = new WebSocket(url + '/to/ws')
   const socket = new WebSocket('ws://localhost:8989')
-  // console.log(socket)
   socket.onopen = () => {
     socket.send(JSON.stringify({
       type: 'ADD_USER_SUCCESS',
@@ -30,6 +28,10 @@ export const setupSocket = (dispatch, url, userData) => {
       }
       default: break
     }
+  }
+
+  socket.onclose = () => {
+    dispatch(clearPlaylist())
   }
 
   return socket

@@ -54,6 +54,10 @@ export const nextSong = (nextSong) => ({
   nextSong
 })
 
+export const clearPlaylist = () => ({
+  type: 'CLEAR_PLAYLIST'
+})
+
 export const upvote = () => ({
   type: 'UPVOTE'
 })
