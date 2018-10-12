@@ -714,6 +714,10 @@ MongoClient.connect(DBurl, function (err, db) {
 		})
 	})
 
+	app.get('/lyrics', (req, res) => {
+		
+	})
+
 	// addYoutubeSong returns a list of track objects
 	function addYoutubeSong(feedItemId, songId, cb) {
 		db.collection('feedItems').findOne({

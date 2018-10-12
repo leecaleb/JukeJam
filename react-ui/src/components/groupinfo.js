@@ -1,99 +1,115 @@
-import React from 'react';
-import {Link} from 'react-router';
-import {getGroupData, getSong, addSong} from '../server'
-import ReactAudioPlayer from 'react-audio-player'
-import SongDisplay from './songdisplay'
+import React from 'react'
+import {Link} from 'react-router'
+import {getGroupData} from '../server'
 import GroupPlaylist from './groupplaylist'
-import SpotifySearch from './spotifysearch'
-import YoutubeSearch from './youtubesearch'
+import SearchPanel from './searchpanel'
+import { connect } from 'react-redux'
 
-export default class GroupInfo extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      groupInfo: [],
-      groupUsers: [],
-      groupPlaylist: [],
-      spotify: true
-    };
-  }
+class GroupInfo extends React.Component {
+	constructor(props) {
+		super(props)
+		this.state = {
+			groupInfo: [],
+			groupUsers: [],
+			groupPlaylist: [],
+			searching: false,
+			spotify: true
+		}
+		this.searchPanelRef = this.searchPanelRef.bind(this)
+		this.handleLeavePanel = this.handleLeavePanel.bind(this)
+	}
 
-  componentDidMount(){
-    getGroupData(this.props.groupId, (group) => {
-      this.setState({
-        groupInfo: group,
-        groupUsers: group.groupUsers
-      });
-      // console.log("this.state.playlistLength: " + this.state.playlistLength);
-    });
+	componentDidMount () {
+		document.addEventListener('mousedown', this.handleLeavePanel)
+		getGroupData(this.props.groupId, (group) => {
+			this.setState({groupInfo: group})
+		})
+	}
 
+	handleGroupPlaylist(song, action, spotify_search) {
+		if (spotify_search) {
+			this.playlist.refresh(song, action)
+		} else {
+			this.playlist.refreshForYoutube(song, action)
+		}
+	}
 
-    // this.setState({spotify: true})
-  }
+	switchToSpotify() {
+		this.setState({
+			spotify: true,
+			searching: true
+		}, this.playlist.blur())
+	}
 
-  // <img key={user._id} src={user.img} />
+	switchToYoutube() {
+		this.setState({spotify: false})
+	}
 
+	searchPanelRef (node) {
+		this.panelRef = node
+	}
 
+	handleLeavePanel (e) {
+		if(this.panelRef && !this.panelRef.contains(e.target)) {
+			document.getElementById('search-body').style.display = 'none'
+			document.getElementById('search-input').style.display = 'none'
+			document.getElementById('search-enter-btn').style.display = 'none'
+		}
+	}
 
-  handleGroupPlaylist(songId, action) {
-    this.playlist.refresh(songId, action);
-  }
+	render() {
+		let search = []
+		if (!this.state.searching) {
+			search.push(
+				<div key={0} ref={this.searchPanelRef}>
+					<SearchPanel
+						handleGroupPlaylist={this.handleGroupPlaylist.bind(this)}
+						groupId = {this.props.groupId}
+						songs= {this.state.groupInfo.songs}/>
+				</div>
+			)
+		}
 
-  handleGroupPlaylistYoutube(song) {
-    this.playlist.refreshForYoutube(song);
-  }
+		let users = []
+		if (this.props.onlineUsers) {
+			users = this.props.onlineUsers
+		}
 
-  switchToSpotify() {
-    this.setState({spotify: true})
-  }
+		return (
+			<div>
+				<div className="col-md-12">
+					{search}
+					<div className="container col-md-3 usersList">
+						<div className="row">
+							<h1>{this.state.groupInfo.groupName}</h1>
+							<div>
+								{users.map((user) => {
+									return(
+										<Link to={'/profile/' + user.userId} key={user.userId}><div id="userThumb">{user.username}</div></Link>
+									)
+								})}
+							</div>
+						</div>
+					</div>
 
-  switchToYoutube() {
-    this.setState({spotify: false})
-  }
-
-  render() {
-    let search = null;
-    if(this.state.spotify) {
-      search = <SpotifySearch
-                  groupId = {this.props.groupId}
-                  handleGroupPlaylist={this.handleGroupPlaylist.bind(this)}
-                  switchToSpotify={this.switchToSpotify.bind(this)}
-                  switchToYoutube={this.switchToYoutube.bind(this)}/>;
-    } else {
-      search = <YoutubeSearch
-                  groupId = {this.props.groupId}
-                  handleGroupPlaylist={this.handleGroupPlaylistYoutube.bind(this)}
-                  switchToSpotify={this.switchToSpotify.bind(this)}
-                  switchToYoutube={this.switchToYoutube.bind(this)}/>;
-    }
-    // console.log("this.state.groupPlaylist: " + this.state.groupPlaylist);
-    // console.log("RENDER this.state.playlistLength: " + this.state.playlistLength);
-
-    return (
-      <div>
-        <div className="container usersList">
-          <div className="row">
-            <h1>{this.state.groupInfo.groupName}</h1>
-            <div>
-              {this.state.groupUsers.map((user) => {
-                return(
-                  <Link to={"/profile/" + user._id} key={user._id}><div id="userThumb">{user.fullName}</div></Link>
-                )
-              })}
-            </div>
-          </div>
-        </div>
-        <div className="container">
-          <div className="row">
-            <div className="col-md-12">
-              <GroupPlaylist
-                groupId = {this.props.groupId}
-                onRef={ref => this.playlist = ref}/>
-              {search}
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
+				</div>
+				<div className="container">
+					<div className="row">
+						<div className="col-md-12">
+							<GroupPlaylist
+								groupId={this.props.groupId}
+								groupInfo={this.state.groupInfo}
+								onRef={ref => this.playlist = ref} />
+						</div>
+					</div>
+				</div>
+			</div>
+		)
+	}
 }
+
+const GroupInfoContainer = connect((store) => ({
+	onlineUsers: store.group.userList
+}), {}) (GroupInfo)
+
+export default GroupInfoContainer
