@@ -17,8 +17,7 @@ class GroupPlaylist extends React.Component {
 			playing: false,
 			startPlay: false,
 			playing_song: [],
-			next_song: [],
-			selected_id: 0
+			next_song: []
 		}
 	}
 

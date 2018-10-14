@@ -1,5 +1,4 @@
 import React from 'react'
-import { getLyrics } from '../server'
 
 export default class NavBar extends React.Component {
 	constructor(props) {
@@ -8,7 +7,6 @@ export default class NavBar extends React.Component {
 	}
 
 	test() {
-		getLyrics()
 	}
 
 	render() {

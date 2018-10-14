@@ -6,6 +6,8 @@ var bodyParser = require('body-parser')
 var cookieParser = require('cookie-parser')
 // var validate = require('express-jsonschema').validate
 var passport = require('passport')
+var axios = require('axios')
+
 require('dotenv').config()
 
 // SOCKET
@@ -714,8 +716,50 @@ MongoClient.connect(DBurl, function (err, db) {
 		})
 	})
 
-	app.get('/lyrics', (req, res) => {
-		
+	app.get('/lyrics/:platform/:songname/:artistname', (req, res) => {
+		const songName = req.params.songname
+		const artistName = req.params.artistname
+		const platformType = req.params.platform
+		const api_key = + process.env.MUSIXMATCH_API_KEY
+		if (platformType === 'y') {
+			axios.get('http://api.musixmatch.com/ws/1.1/track.search?q_track_artist=' + songName + '&s_artist_rating=asc&f_has_lyrics=1&apikey=' + api_key)
+				.then((response) => {
+					console.log(response.data.message.body.track_list[0].track)
+					const track = response.data.message.body.track_list[0].track
+					axios.get('http://api.musixmatch.com/ws/1.1/track.lyrics.get?track_id=' + track.track_id + '&apikey=' + api_key)
+						.then((response) => {
+							console.log(response.data.message.body.lyrics)
+							if (response.data.message.body.lyrics !== undefined) {
+								res.send(response.data.message.body.lyrics)
+							} else {
+								res.send({})
+							}
+						}).catch((err) => {
+							console.log('can\'t get lyrics: ' + err)
+						})
+				}).catch((err) => {
+					console.log(err)
+				})
+		} else {
+			axios.get('http://api.musixmatch.com/ws/1.1/track.search?q_track=' + songName + '&q_artist=' + artistName + '&s_artist_rating=asc&f_has_lyrics=1&apikey=' + api_key)
+				.then((response) => {
+					console.log(response.data.message.body.track_list[0].track)
+					const track = response.data.message.body.track_list[0].track
+					axios.get('http://api.musixmatch.com/ws/1.1/track.lyrics.get?track_id=' + track.track_id + '&apikey=' + api_key)
+						.then((response) => {
+							console.log(response.data.message.body.lyrics)
+							if (response.data.message.body.lyrics !== undefined) {
+								res.send(response.data.message.body.lyrics)
+							} else {
+								res.send({})
+							}
+						}).catch((err) => {
+							console.log('can\'t get lyrics: ' + err)
+						})
+				}).catch((err) => {
+					console.log(err)
+				})
+		}		
 	})
 
 	// addYoutubeSong returns a list of track objects

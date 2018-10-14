@@ -92,8 +92,8 @@ export function removeYoutubeSong(feedItemId, songId, cb) {
 	})
 }
 
-export function getLyrics(cb) {
-	sendXHR('GET', '/lyrics', undefined, (xhr) => {
+export function getLyrics(platformType, songName, artistName, cb) {
+	sendXHR('GET', '/lyrics/' + platformType + '/' + songName + '/' + artistName, undefined, (xhr) => {
 		cb(JSON.parse(xhr.responseText))
 	})
 }
