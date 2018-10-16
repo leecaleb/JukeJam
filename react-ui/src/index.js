@@ -49,6 +49,7 @@ class ProfilePage extends React.Component {
 class GroupAuthed extends React.Component {
 
 	componentDidMount() {
+		console.log('mounted')
 		var loc = window.location
 		var new_url = ''
 		if (loc.protoccol === 'https:') {

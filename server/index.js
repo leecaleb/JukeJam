@@ -47,7 +47,6 @@ wss.on('connection', (ws) => {
 			}))
 			broadcast({
 				type: 'ONLINE_USER_LIST',
-				roomId: roomId,
 				onlineUsers
 			}, ws)
 			break
@@ -55,16 +54,16 @@ wss.on('connection', (ws) => {
 		case 'ADD_SONG_SUCCESS': {
 			broadcast({
 				type: 'NEW_SONG_ADDED',
-				roomId: roomId,
-				song: data.song
+				song: data.song,
+				onlineUsers
 			}, ws)
 			break
 		}
 		case 'PLAY_NEXT': {
 			broadcast({
 				type: 'NEXT_SONG',
-				roomId: roomId,
-				song: data.nextSong
+				song: data.nextSong,
+				onlineUsers
 			}, ws)
 			break
 		}
