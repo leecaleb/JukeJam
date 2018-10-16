@@ -4,7 +4,7 @@ export default function group(state={
 	userList: [],
 	playlist: [],
 	currentSong: [],
-	selected_id: 3,
+	selected_id: 0,
 	votes: 0
 }, action) {
 	switch (action.type) {

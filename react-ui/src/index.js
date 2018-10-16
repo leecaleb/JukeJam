@@ -22,6 +22,7 @@ localStorage.clear()
 
 const persistedState = loadState()
 const sagaMiddleware = createSagaMiddleware()
+var socket
 
 const store = createStore(
 	reducer,
@@ -35,7 +36,7 @@ store.subscribe(() => {
 
 class HomePage extends React.Component {
 	render() {
-    	return <PublicHomePage />
+		return <PublicHomePage />
 	}
 }
 
@@ -44,8 +45,6 @@ class ProfilePage extends React.Component {
 		return <Profile user={this.props.params.id} />
 	}
 }
-
-var sock
 
 class GroupAuthed extends React.Component {
 
@@ -58,9 +57,8 @@ class GroupAuthed extends React.Component {
 			new_url = 'ws:'
 		}
 		new_url += '//' + loc.host + loc.pathname
-		const socket = setupSocket(store.dispatch, new_url, store.getState().user)
+		socket = setupSocket(store.dispatch, new_url, this.props.params.id, store.getState().user)
 		sagaMiddleware.run(rootSaga, { socket })
-		sock = socket
 	}
 
 	render() {
@@ -105,7 +103,7 @@ ReactDOM.render((
 				<IndexRoute component={HomePage} />
 				<Route path="user/:id" component={MainPage} />
 				<Route path="profile/:id" component={ProfilePage} />
-				<Route path="group/:id" onLeave={() => sock.close()} component={GroupAuthed} />
+				<Route path="group/:id" onLeave={() => socket.close()} component={GroupAuthed} />
 				<Route path="group/:id/:grouptitle" component={GroupProfile} />
 			</Route>
 		</Router>

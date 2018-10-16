@@ -1,22 +1,22 @@
-var express = require('express')
+const express = require('express')
 const path = require('path')
-var app = express()
-var bodyParser = require('body-parser')
+const app = express()
+const bodyParser = require('body-parser')
 // var querystring = require('querystring')
-var cookieParser = require('cookie-parser')
+const cookieParser = require('cookie-parser')
 // var validate = require('express-jsonschema').validate
-var passport = require('passport')
-var axios = require('axios')
-
+const passport = require('passport')
+const axios = require('axios')
 require('dotenv').config()
 
 // SOCKET
 var WebSocket = require('ws')
 var wss = new WebSocket.Server({ port: 8989 })
-const users = []
-const sockets = []
+var room = new Object()
+var socketClients = {}
 const broadcast = (data, ws) => {
-	wss.clients.forEach((client) => {
+	data.onlineUsers.forEach((user) => {
+		const client = socketClients[user.userId]
 		if (client !== ws && client.readyState === WebSocket.OPEN) {
 			client.send(JSON.stringify(data))
 		}
@@ -24,30 +24,38 @@ const broadcast = (data, ws) => {
 }
 
 wss.on('connection', (ws) => {
-	sockets.push(ws)
-	var user
+	var user, roomId, onlineUsers
 	ws.on('message', (message) => {
 		const data = JSON.parse(message)
-		user = {
-			userId: data.userId,
-			username: data.username
-		}
 		switch (data.type) {
 		case 'ADD_USER_SUCCESS': {
-			users.push(user)
+			roomId = data.groupPlaylistID	
+			user = {
+				userId: data.userId,
+				username: data.username
+			}
+			socketClients[data.userId] = ws
+			if (room[roomId] === undefined) {
+				room[roomId] = [user]
+			} else {
+				room[roomId].push(user)
+			}
+			onlineUsers = room[roomId]
 			ws.send(JSON.stringify({
 				type: 'ONLINE_USER_LIST',
-				users
+				onlineUsers
 			}))
 			broadcast({
 				type: 'ONLINE_USER_LIST',
-				users
+				roomId: roomId,
+				onlineUsers
 			}, ws)
 			break
 		}
 		case 'ADD_SONG_SUCCESS': {
 			broadcast({
 				type: 'NEW_SONG_ADDED',
+				roomId: roomId,
 				song: data.song
 			}, ws)
 			break
@@ -55,6 +63,7 @@ wss.on('connection', (ws) => {
 		case 'PLAY_NEXT': {
 			broadcast({
 				type: 'NEXT_SONG',
+				roomId: roomId,
 				song: data.nextSong
 			}, ws)
 			break
@@ -63,11 +72,13 @@ wss.on('connection', (ws) => {
 		}
 	})
 	ws.on('close', () => {
-		var index = users.indexOf(user)
-		users.splice(index, 1)
+		var index = room[roomId].indexOf(user)
+		room[roomId].splice(index, 1)
+		onlineUsers = room[roomId]
 		broadcast({
 			type: 'ONLINE_USER_LIST',
-			users
+			roomId: roomId,
+			onlineUsers
 		}, ws)
 	})
 })
@@ -695,14 +706,14 @@ MongoClient.connect(DBurl, function (err, db) {
 				res.status(400).send('Could not look up feeditem ' + feeditemid)
 			} else {
 				var youtube = feeditem.songs.youtube
-				var youtuebList = ''
+				var youtubeList = ''
 				for (var i = 0; i < youtube.length; ++i) {
-					youtuebList += youtube[i]._id + ', '
+					youtubeList += youtube[i]._id + ', '
 				}
 
 				var service = google.youtube('v3')
 				service.videos.list({
-					id: youtuebList,
+					id: youtubeList,
 					part: 'snippet',
 					key: 'AIzaSyBE8RGhvuETJwtxM3vA2z4x1XDujOuQCXg'
 				}, function (err, data) {
