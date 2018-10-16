@@ -1,10 +1,10 @@
 import React from 'react'
-import FeedItem from './feedItem'
-import ErrorBanner from './errorbanner'
-import SideBar from './sidebar'
-import {getFeedData} from '../server'
-import { connect } from 'react-redux'
-import { getPlaylist } from '../actions/index'
+import FeedItem from './components/feeditem'
+import ErrorBanner from '../../components/errorbanner'
+import SideBar from './components/sidebar'
+import {getFeedData} from '../../server'
+// import { connect } from 'react-redux'
+// import { getPlaylist } from '../actions/index'
 
 class MainFeed extends React.Component {
 	constructor(props) {

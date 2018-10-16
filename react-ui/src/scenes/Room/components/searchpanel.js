@@ -1,7 +1,7 @@
 import React from 'react'
 import SpotifySearchSongDisplay from './spotifysearchsongdisplay'
 import YoutubePlayer from './youtubeplayer'
-import {getGroupData, searchSong, searchYoutube} from '../server'
+import {getGroupData, searchSong, searchYoutube} from '../../../server'
 
 export default class SearchPanel extends React.Component {
 	constructor(props) {

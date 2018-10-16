@@ -1,8 +1,8 @@
 import React from 'react'
 import {Link} from 'react-router'
-import {getGroupData} from '../server'
-import GroupPlaylist from './groupplaylist'
-import SearchPanel from './searchpanel'
+import {getGroupData} from '../../server'
+import GroupPlaylist from './components/groupplaylist'
+import SearchPanel from './components/searchpanel'
 import { connect } from 'react-redux'
 
 class GroupInfo extends React.Component {

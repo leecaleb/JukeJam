@@ -1,7 +1,7 @@
 import React from 'react'
 import ReactAudioPlayer from 'react-audio-player'
 import Youtube from 'react-youtube'
-import {addSong, removeSong, getLyrics} from '../server'
+import {addSong, removeSong, getLyrics} from '../../../server'
 
 export default class PlayingSongDisplay extends React.Component {
 	constructor(props) {
