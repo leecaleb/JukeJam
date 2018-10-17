@@ -1,6 +1,8 @@
 var ObjectID = require('mongodb').ObjectID
+require('dotenv').config()
 
-var databaseName = 'musicQ'
+
+var databaseName = 'JukeJam'
 // Put the initial mock objects here.
 var initialData = {
 	'users': {
@@ -179,11 +181,11 @@ function resetDatabase(db, cb) {
 // Check if called directly via 'node', or required() as a module.
 // http://stackoverflow.com/a/6398335
 if(require.main === module) {
-	// Called directly, via 'node src/resetdatabase.js'.
+	// Called directly, via 'node resetdatabase.js'.
 	// Connect to the database, and reset it!
 	var MongoClient = require('mongodb').MongoClient
-	var url = 'mongodb://heroku_39clj157:gvpqlgnmmekbcronm1dvdojdcu@ds235775.mlab.com:35775/heroku_39clj157'
-	MongoClient.connect(url, function(err, db) {
+	var url = process.env.MONGO_URL
+	MongoClient.connect(url, function (err, db) {
 		if (err) {
 			throw new Error('Could not connect to database: ' + err)
 		} else {

@@ -84,9 +84,16 @@ wss.on('connection', (ws) => {
 
 var MongoClient = require('mongodb').MongoClient
 var ObjectID = require('mongodb').ObjectID
-var DBurl = 'mongodb://heroku_39clj157:gvpqlgnmmekbcronm1dvdojdcu@ds235775.mlab.com:35775/heroku_39clj157'
+var DBurl = process.env.MONGO_URL
 
 MongoClient.connect(DBurl, function (err, db) {
+
+	if (err) {
+		console.log('error occured when connecting to the database: ', err)
+	}
+	
+	console.log(process.env.YOUTUBE_API_KEY)
+
 
 	app.use(cookieParser())
 
@@ -532,7 +539,6 @@ MongoClient.connect(DBurl, function (err, db) {
 		}
 	})
 
-
 	var google = require('googleapis')
 
 	//search youtube
@@ -545,7 +551,7 @@ MongoClient.connect(DBurl, function (err, db) {
 				q: queryText,
 				part: 'snippet',
 				type: 'video',
-				key: 'AIzaSyBE8RGhvuETJwtxM3vA2z4x1XDujOuQCXg'
+				key: process.env.YOUTUBE_API_KEY
 			}, function (err, data) {
 				if (err) {
 					console.log('The API returned an error: ' + err)
@@ -714,7 +720,7 @@ MongoClient.connect(DBurl, function (err, db) {
 				service.videos.list({
 					id: youtubeList,
 					part: 'snippet',
-					key: 'AIzaSyBE8RGhvuETJwtxM3vA2z4x1XDujOuQCXg'
+					key: process.env.YOUTUBE_API_KEY
 				}, function (err, data) {
 					if (err) {
 						console.log('The API returned an error: ' + err)
@@ -813,7 +819,7 @@ MongoClient.connect(DBurl, function (err, db) {
 			service.videos.list({
 				id: song,
 				part: 'snippet',
-				key: 'AIzaSyBE8RGhvuETJwtxM3vA2z4x1XDujOuQCXg'
+				key: process.env.YOUTUBE_API_KEY
 			}, function (err, data) {
 				if (err) {
 					console.log('The API returned an error: ' + err)
