@@ -1,4 +1,4 @@
-import {readDocument, writeDocument, addDocument} from './database.js'
+import server_url from './config'
 
 export function getUserData(user, cb) {
 	sendXHR('GET', '/user/' + user, undefined, (xhr) => {
@@ -99,14 +99,12 @@ export function getLyrics(platformType, songName, artistName, cb) {
 }
 
 //to find token, type node and "new Buffer(JSON.stringify({ id: "000000000000000000000004" })).toString('base64');"
-// var token = 'eyAiaWQiOiA0IH0NCg==';
-// var token = 'eyJpZCI6IjAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwNCJ9';
-// var token = 'eyJpZCI6ImNhbGViNzk0NyJ9'; // <-- Put your base64'd JSON token here
-
+var token = document.cookie.slice(6)
 function sendXHR(verb, resource, body, cb) {
 	var xhr = new XMLHttpRequest()
-	xhr.open(verb, resource)
-	// xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+	const host = process.env.NODE_ENV === 'development' ? 'http://localhost:5000' : server_url
+	xhr.open(verb, host + resource)
+	xhr.setRequestHeader('Authorization', 'Bearer ' + token);
 
 	// The below comment tells ESLint that AppError is a global.
 	// Otherwise, ESLint would complain about it! (See what happens in Atom if

@@ -7,7 +7,6 @@ import GroupInfo from './scenes/Room/groupinfo'
 import GroupPage from './components/grouppage'
 import PublicHomePage from './scenes/Home/publichomepage'
 import { getUserData } from './server'
-// import registerServiceWorker from './registerServiceWorker';
 import { IndexRoute, Router, Route, browserHistory } from 'react-router'
 import { Provider } from 'react-redux'
 import { createStore, applyMiddleware } from 'redux'
@@ -49,7 +48,6 @@ class ProfilePage extends React.Component {
 class GroupAuthed extends React.Component {
 
 	componentDidMount() {
-		console.log('mounted')
 		var loc = window.location
 		var new_url = ''
 		if (loc.protoccol === 'https:') {
@@ -96,7 +94,6 @@ class App extends React.Component {
 	}
 }
 
-
 ReactDOM.render((
 	<Provider store={store}>
 		<Router history={browserHistory}>
@@ -110,5 +107,3 @@ ReactDOM.render((
 		</Router>
 	</Provider>
 ), document.getElementById('main-container'))
-
-// registerServiceWorker();

@@ -1,12 +1,12 @@
 import React from 'react'
 import ErrorBanner from '../../components/errorbanner'
+import server_url from '../../config'
 
 export default class PublicHomePage extends React.Component {
-
-	// <a href="https://whispering-chamber-83498.herokuapp.com/auth/spotify">Spotify Login</a>
-	// <a href="http://localhost:5000/auth/spotify">Spotify Login</a>
-
 	render() {
+		const login_url = process.env.NODE_ENV === 'development' ?
+			"http://localhost:5000/auth/spotify"
+			: server_url + '/auth/spotify'
 		return (
 			<div>
 				<div className="container">
@@ -16,7 +16,7 @@ export default class PublicHomePage extends React.Component {
 						</div>
 					</div>
 					<div className="col-md-12" id="main">
-						<a href="http://localhost:5000/auth/spotify">Spotify Login</a>
+						<a href={login_url}>Spotify Login</a>
 					</div>
 				</div>
 			</div>

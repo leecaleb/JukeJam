@@ -22,11 +22,11 @@ export default class PlayingSongDisplay extends React.Component {
 	handlePlay() {
 		if (this.props.data.type == null) { //youtube
 			getLyrics('y', this.props.data.snippet.title.toString(), this.props.data.snippet.channelTitle.toString(), (lyrics) => {
-				console.log(lyrics.lyrics_body)
+				// console.log(lyrics.lyrics_body)
 			})
 		} else { // spotify
 			getLyrics('s', this.props.data.name.toString(), this.props.data.artists[0].name.toString(), (lyrics) => {
-				console.log(lyrics.lyrics_body)
+				// console.log(lyrics.lyrics_body)
 			})
 		}
 		
