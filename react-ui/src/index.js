@@ -72,7 +72,7 @@ class GroupProfile extends React.Component {
 }
 
 class MainPage extends React.Component {
-	componentWillMount() {
+	componentDidMount() {
 		getUserData(this.props.params.id, (userData) => {
 			store.dispatch(loadUserData(userData))
 		})
@@ -84,10 +84,33 @@ class MainPage extends React.Component {
 }
 
 class App extends React.Component {
+	constructor(props) {
+		super(props)
+		this.state = {
+			scroll_down: false,
+			lastScrollPosition: window.pageYOffset
+		}
+		this.handleScroll = this.handleScroll.bind(this)
+	}
+
+	componentDidMount() {
+		window.addEventListener('scroll', this.handleScroll)
+	}
+
+	handleScroll() {
+		var scrollTop = window.pageYOffset
+		const down = scrollTop > this.state.lastScrollPosition
+		this.setState({
+			lastScrollPosition: scrollTop,
+			scroll_down: down
+		})
+	}
+
 	render() {
+		var nav = this.state.scroll_down ? null : <NavBar />
 		return (
 			<div>
-				<NavBar />
+				{nav}
 				{this.props.children}
 			</div>
 		)

@@ -158,5 +158,4 @@ const mapDispatchToProps = (dispatch) => {
 	}
 }
 
-const SongDisplayContainer = connect(() => ({}), mapDispatchToProps) (SpotifySearchSongDisplay)
-export default SongDisplayContainer
+export default connect(() => ({}), mapDispatchToProps) (SpotifySearchSongDisplay)

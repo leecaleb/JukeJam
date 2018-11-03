@@ -20,15 +20,15 @@ export default class PlayingSongDisplay extends React.Component {
 	}
 
 	handlePlay() {
-		if (this.props.data.type == null) { //youtube
-			getLyrics('y', this.props.data.snippet.title.toString(), this.props.data.snippet.channelTitle.toString(), (lyrics) => {
-				// console.log(lyrics.lyrics_body)
-			})
-		} else { // spotify
-			getLyrics('s', this.props.data.name.toString(), this.props.data.artists[0].name.toString(), (lyrics) => {
-				// console.log(lyrics.lyrics_body)
-			})
-		}
+		// if (this.props.data.type == null) { //youtube
+		// 	getLyrics('y', this.props.data.snippet.title.toString(), this.props.data.snippet.channelTitle.toString(), (lyrics) => {
+		// 		console.log(lyrics.lyrics_body)
+		// 	})
+		// } else { // spotify
+		// 	getLyrics('s', this.props.data.name.toString(), this.props.data.artists[0].name.toString(), (lyrics) => {
+		// 		console.log(lyrics.lyrics_body)
+		// 	})
+		// }
 		
 		if(this.props.data.type == null){
 			this.setState({
@@ -92,8 +92,8 @@ export default class PlayingSongDisplay extends React.Component {
 		var playButton = []
 
 		const opts = {
-			height: '300',
-			width: '300',
+			height: '100%',
+			width: '100%',
 			playerVars: {
 				controls: 0,
 				showinfo: 0,
@@ -104,7 +104,6 @@ export default class PlayingSongDisplay extends React.Component {
 		}
 
 		var album_cover = []
-		var display = []
 
 		if(this.state.playing){
 			playButton.push(
@@ -122,53 +121,75 @@ export default class PlayingSongDisplay extends React.Component {
 
 		if(this.props.data.type == null) { //youtube
 			album_cover = (
-				<div className="group-playlist media-left playingsongdisplay" key={this.props.songId}>
-					<Youtube
-						id={'youtube-player-'+ this.props.data.id}
-						opts={opts}
-						videoId={this.props.data.id}
-						onEnd={this.playNextSong.bind(this)}
-						onReady={this.onReady.bind(this)}
-					/>
-				</div>
-			)
-			display = (
-				<div className="media-body" key={this.props.songId + '0'}>
-					{playButton}
-					<h3 className="media-heading">{this.props.data.snippet.title.toString() + ' '}
-					</h3>
-					<p>by {this.props.data.snippet.channelTitle.toString()}</p>
-					<button className="btn btn-default" type="button" id="upvote" key={0}>
-						<span className="glyphicon glyphicon-thumbs-up" aria-hidden="true"></span>
-					</button>
-					<button className="btn btn-default" type="button" id="downvote" key={1}>
-						<span className="glyphicon glyphicon-thumbs-down" aria-hidden="true"></span>
-					</button>
+				<div className="group-playlist playingsongdisplay" id="playing-youtube" key={this.props.songId}>
+					<div className="playing-container">
+						<Youtube
+							id={'youtube-player-'+ this.props.data.id}
+							opts={opts}
+							videoId={this.props.data.id}
+							onEnd={this.playNextSong.bind(this)}
+							onReady={this.onReady.bind(this)}
+						/>
+						<div className="player-controller">
+							<div className="col-md-1" id="btn-container">
+								<button className="btn btn-default" type="button" id="upvote" key={0}>
+									<span className="glyphicon glyphicon-thumbs-up" aria-hidden="true"></span>
+								</button>
+							</div>
+							<div className="col-md-10">
+								<div className="row player-header">
+									<div className="col-md-1" style={{ paddingRight: 0 }}>
+										{playButton}
+									</div>
+									<div className="col-md-11">
+										<h3 style={{ marginTop: 11, marginLeft: 0 }}>{this.props.data.snippet.title.toString() + ' '}</h3>
+									</div>
+								</div>
+								<p style={{ paddingLeft: 15, marginTop: 8 }}>by {this.props.data.snippet.channelTitle.toString()}</p>
+							</div>
+							<div className="col-md-1" id="btn-container">
+								<button className="btn btn-default" type="button" id="downvote" key={1}>
+									<span className="glyphicon glyphicon-thumbs-down" aria-hidden="true"></span>
+								</button>
+							</div>
+						</div>
+					</div>
 				</div>
 			)
 		} else { //spotify
 			album_cover = (
-				<div className="group-playlist media-left playingsongdisplay" key={this.props.songId}>
-					<img src={this.props.data.album.images[0].url} alt="no album cover found :(" />
-					<ReactAudioPlayer
-						onEnded = {this.playNextSong.bind(this)}
-						src = {this.props.data.preview_url}
-						ref = {(e) => {this.song = e}}
-					/>
-				</div>
-			)
-			display = (
-				<div className="media-body" key={this.props.songId + '1'}>
-					{playButton}
-					<h3 className="media-heading">{this.props.data.name.toString() + ' '}
-					</h3>
-					<p>{this.props.data.artists[0].name.toString()} · {this.props.data.album.name.toString()}</p>
-					<button className="btn btn-default" type="button" id="upvote" key={0}>
-						<span className="glyphicon glyphicon-thumbs-up" aria-hidden="true"></span>
-					</button>
-					<button className="btn btn-default" type="button" id="downvote" key={1}>
-						<span className="glyphicon glyphicon-thumbs-down" aria-hidden="true"></span>
-					</button>
+				<div className="group-playlist playingsongdisplay" id="playing-spotify" key={this.props.songId}>
+					<div className="playing-container">
+						<img src={this.props.data.album.images[0].url} alt="no album cover found :(" />
+						<ReactAudioPlayer
+							onEnded = {this.playNextSong.bind(this)}
+							src = {this.props.data.preview_url}
+							ref = {(e) => {this.song = e}}
+						/>
+						<div className="player-controller">
+							<div className="col-md-1" id="btn-container">
+								<button className="btn btn-default" type="button" id="upvote" key={0}>
+									<span className="glyphicon glyphicon-thumbs-up" aria-hidden="true"></span>
+								</button>
+							</div>
+							<div className="col-md-10">
+								<div className="row player-header">
+									<div className="col-md-1" style={{ paddingRight: 0 }}>
+										{playButton}
+									</div>
+									<div className="col-md-11">
+										<h3 style={{ marginTop: 11, marginLeft: 0 }}>{this.props.data.name.toString() + ' '}</h3>
+									</div>
+								</div>
+								<p style={{ paddingLeft: 15, marginTop: 8 }}>{this.props.data.artists[0].name.toString()} · {this.props.data.album.name.toString()}</p>
+							</div>
+							<div className="col-md-1" id="btn-container">
+								<button className="btn btn-default" type="button" id="downvote" key={1}>
+									<span className="glyphicon glyphicon-thumbs-down" aria-hidden="true"></span>
+								</button>
+							</div>
+						</div>
+					</div>
 				</div>
 			)
 		}
@@ -176,7 +197,6 @@ export default class PlayingSongDisplay extends React.Component {
 		return(
 			<div>
 				{album_cover}
-				{display}
 			</div>
 		)
 	}

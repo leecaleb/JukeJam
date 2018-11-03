@@ -39,21 +39,6 @@ class YoutubePlayer extends React.Component {
 	}
 
 	render() {
-		const opts = {
-			height: '100',
-			width: '100',
-			playerVars: {
-				controls: 0,
-				showinfo: 0,
-				modestbranding: 1,
-				rel: 0
-			}
-		}
-
-		window.YTConfig = {
-			host: 'https://www.youtube.com'
-		}
-
 		var addButton = []
 		if(this.props.included) {
 			addButton.push(
@@ -76,11 +61,8 @@ class YoutubePlayer extends React.Component {
 		return(
 			<div>
 				<div className="media" id="song-display">
-					<div className="media-left">
-						<Youtube
-							opts={opts}
-							videoId={this.props.videoId}
-						/>
+					<div className="media-left youtube-search-song-display">
+						<img src={this.props.videoThumb.high.url} id="youtube-thumbnail" alt="no album cover found :(" />
 					</div>
 					<div className="media-body">
 						<h3 className="media-heading">{this.props.title + ' '}</h3>{addButton}
@@ -96,5 +78,5 @@ const mapDispatchToProps = (dispatch) => {
 		...bindActionCreators({addNewSong}, dispatch)
 	}
 }
-const SongDisplayContainer = connect(() => ({}), mapDispatchToProps) (YoutubePlayer)
-export default SongDisplayContainer
+const Container = connect(() => ({}), mapDispatchToProps) (YoutubePlayer)
+export default Container

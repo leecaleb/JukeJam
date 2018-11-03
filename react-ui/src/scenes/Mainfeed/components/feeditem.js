@@ -79,21 +79,22 @@ export default class FeedItem extends React.Component {
 				</button>
 			)
 		}
-		// console.log("this.state.songs.length: " + this.state.songs.length);
+		// console.log(this.state.author)
+		// <img src={this.state.author.img} style={{width: '50%'}}/>
 		return (
 			<div>
 				<div className="jumbotron">
 					<div className="container">
 						<div className="row">
-							<div className="col-md-4 feeditem">
+							<div className="col-md-6 feeditem">
 								<a href="#" className="thumbnail group3">
-									<button type="button" className="btn btn-default btn-left">
+									{/* <button type="button" className="btn btn-default btn-left">
 										<span className="glyphicon glyphicon-chevron-left" aria-hidden="true" />
 									</button>
 
 									<button type="button" className="btn btn-default btn-right">
 										<span className="glyphicon glyphicon-chevron-right" aria-hidden="true" />
-									</button>
+									</button> */}
 								</a>
 								<div className="btn-group" role="group">
 									{likeButton}
@@ -109,7 +110,7 @@ export default class FeedItem extends React.Component {
 								</div>
 							</div>
 							{this.auth() ?
-								<div className="col-md-8">
+								<div className="col-md-6">
 									<div className="panel panel-default group-content">
 										<div className="panel-heading group-header">
 											<h2 className="panel-title"><b><Link to={'/group/' + this.state._id}>{this.state.groupName}</Link></b>

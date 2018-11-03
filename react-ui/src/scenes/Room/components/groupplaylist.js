@@ -19,9 +19,13 @@ class GroupPlaylist extends React.Component {
 			playing_song: [],
 			next_song: []
 		}
+		this.handleScroll = this.handleScroll.bind(this)
 	}
 
-	componentWillMount() {
+	componentDidMount() {
+		document.getElementById('song-queue').addEventListener('wheel', (e) => {
+			this.handleScroll(e)
+		})
 		this.props.onRef(this)
 		getPlaylist(this.props.groupId, (songlist) => {
 			this.setState({
@@ -35,6 +39,10 @@ class GroupPlaylist extends React.Component {
 				this.updatePlaylist)
 			}))
 		})
+	}
+
+	handleScroll(e) {
+		window.scrollBy(100, 0)
 	}
 
 	// action: 1 if song added and 0 if song removed
@@ -157,7 +165,7 @@ class GroupPlaylist extends React.Component {
 							)
 						})}
 					</div>
-					<div className="row">
+					<div className="row song-queue" id="song-queue">
 						{this.props.group.playlist.map(this.buildChildren.bind(this))}
 					</div>
 				</div>

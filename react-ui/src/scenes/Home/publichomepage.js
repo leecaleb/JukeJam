@@ -9,14 +9,27 @@ export default class PublicHomePage extends React.Component {
 			: server_url + '/auth/spotify'
 		return (
 			<div>
-				<div className="container">
+				<div className="container-fluid">
 					<div className="row">
 						<div className="col-md-12">
 							<ErrorBanner />
 						</div>
 					</div>
-					<div className="col-md-12" id="main">
-						<a href={login_url}>Spotify Login</a>
+					<div className="row">
+						<div className="col-md-12">
+							<div className="panel panel-default" id="login-panel">
+								<div className="panel-body" >
+									<div className="row">
+										<img className="login-logo" />
+									</div>
+									<div style={{ textAlign: 'center', paddingTop: 30 }}>
+										<button className="btn btn-default" type="button" style={{ textAlign: 'center' }} >
+											<a className="login-link" href={login_url}>Spotify Login</a>
+										</button>
+									</div>
+								</div>
+							</div>
+						</div>
 					</div>
 				</div>
 			</div>

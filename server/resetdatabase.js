@@ -34,7 +34,7 @@ var initialData = {
 		'4': {
 			'_id': new ObjectID('000000000000000000000004'),
 			'fullName': 'caleb7947',
-			// ID of your feed.
+			'img': 'https://images.unsplash.com/photo-1515536765-9b2a70c4b333?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=e28f973699b9805ba500348e3ecdc38a&auto=format&fit=crop&w=1576&q=80',
 			'feed': new ObjectID('000000000000000000000004'),
 			'groups': [new ObjectID('000000000000000000000001')],
 			'likedPlaylist':[new ObjectID('000000000000000000000002')]

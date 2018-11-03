@@ -77,31 +77,27 @@ class GroupInfo extends React.Component {
 
 		return (
 			<div>
-				<div className="col-md-12">
-					{search}
-					<div className="container col-md-3 usersList">
+				<div className="col-md-12 room-title">
+					<div className="container" style={{ height: '40%'}}>
+						{search}
+					</div>
+					<div className="container usersList">
 						<div className="row">
 							<h1>{this.state.groupInfo.groupName}</h1>
-							<div>
-								{users.map((user) => {
-									return(
-										<Link to={'/profile/' + user.userId} key={user.userId}><div id="userThumb">{user.username}</div></Link>
-									)
-								})}
-							</div>
+						
+							{users.map((user) => {
+								return(
+									<Link to={'/profile/' + user.userId} key={user.userId}><div id="userThumb">{user.username}</div></Link>
+								)
+							})}
 						</div>
 					</div>
-
 				</div>
-				<div className="container">
-					<div className="row">
-						<div className="col-md-12">
-							<GroupPlaylist
-								groupId={this.props.groupId}
-								groupInfo={this.state.groupInfo}
-								onRef={ref => this.playlist = ref} />
-						</div>
-					</div>
+				<div className="container-fluid">
+					<GroupPlaylist
+						groupId={this.props.groupId}
+						groupInfo={this.state.groupInfo}
+						onRef={ref => this.playlist = ref} />
 				</div>
 			</div>
 		)

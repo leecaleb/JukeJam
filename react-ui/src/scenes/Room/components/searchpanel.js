@@ -44,7 +44,6 @@ export default class SearchPanel extends React.Component {
 				this.setState({searchRes: data})
 			})
 		}
-
 	}
 
 	handleOnKeyUp (e) {
@@ -97,27 +96,15 @@ export default class SearchPanel extends React.Component {
 			song_display.push(
 				<div key={0} id="searchResult">
 					{this.state.searchRes.map((song) => {
-						if (this.state.spotify_list.includes(song.id)) {
-							return(
-								<SpotifySearchSongDisplay
-									key={song.id}
-									data={song}
-									songId={song.id}
-									groupId={this.props.groupId}
-									handleGroupPlaylist={this.handleGroupPlaylist}
-									included={1}/>
-							)
-						} else {
-							return(
-								<SpotifySearchSongDisplay
-									key={song.id}
-									data={song}
-									songId={song.id}
-									groupId={this.props.groupId}
-									handleGroupPlaylist={this.handleGroupPlaylist}
-									included={0}/>
-							)
-						}
+						return(
+							<SpotifySearchSongDisplay
+								key={song.id}
+								data={song}
+								songId={song.id}
+								groupId={this.props.groupId}
+								handleGroupPlaylist={this.handleGroupPlaylist}
+								included={this.state.spotify_list.includes(song.id)? 1:0}/>
+						)
 					})}
 				</div>
 			)
@@ -125,29 +112,17 @@ export default class SearchPanel extends React.Component {
 			song_display.push(
 				<div key={1} id="searchResult">
 					{this.state.searchRes.map((song) => {
-						if (this.state.youtube_list.includes(song.id.videoId)) {
-							return(
-								<YoutubePlayer
-									key={song.id.videoId}
-									videoId={song.id.videoId}
-									title={song.snippet.title}
-									channelTitle={song.snippet.channelTitle}
-									groupId={this.props.groupId}
-									handleGroupPlaylist={this.handleGroupPlaylist}
-									included={1}/>
-							)
-						} else {
-							return(
-								<YoutubePlayer
-									key={song.id.videoId}
-									videoId={song.id.videoId}
-									title={song.snippet.title}
-									channelTitle={song.snippet.channelTitle}
-									groupId={this.props.groupId}
-									handleGroupPlaylist={this.handleGroupPlaylist}
-									included={0}/>
-							)
-						}
+						return (
+							<YoutubePlayer
+								key={song.id.videoId}
+								videoId={song.id.videoId}
+								videoThumb={song.snippet.thumbnails}
+								title={song.snippet.title}
+								channelTitle={song.snippet.channelTitle}
+								groupId={this.props.groupId}
+								handleGroupPlaylist={this.handleGroupPlaylist}
+								included={this.state.youtube_list.includes(song.id.videoId)? 1 : 0}/>
+						)
 					})}
 				</div>
 			)
@@ -170,7 +145,7 @@ export default class SearchPanel extends React.Component {
 					</span>
 				</div>
 
-				<div className="panel-body" id="search-body">
+				<div className="container panel-body" id="search-body">
 					{song_display}
 				</div>
 

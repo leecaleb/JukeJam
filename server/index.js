@@ -30,9 +30,9 @@ MongoClient.connect(DBurl, function (err, db) {
 	app.use((req, res, next) => {
 		// console.log(req.headers)
 		// if (req.headers.referer.endsWith('localhost:3000/')) {
-			res.setHeader('Access-Control-Allow-Origin', WEB_URL)
-			res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Authorization')
-			res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE')
+		res.setHeader('Access-Control-Allow-Origin', WEB_URL)
+		res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Authorization')
+		res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE')
 		// }
 		next()
 	})
@@ -158,6 +158,7 @@ MongoClient.connect(DBurl, function (err, db) {
 		}
 	}
 
+	//getUserData
 	app.get('/user/:userid', (req, res) => {
 		var user_id = req.params.userid
 		var fromUser = getUserIdFromToken(req.get('Authorization'))
@@ -254,6 +255,7 @@ MongoClient.connect(DBurl, function (err, db) {
 		})
 	}
 
+	//getFeedData
 	app.get('/user/:userid/feed', function (req, res) {
 		var user_id = req.params.userid
 		var fromUser = getUserIdFromToken(req.get('Authorization'))
@@ -302,6 +304,7 @@ MongoClient.connect(DBurl, function (err, db) {
 		})
 	}
 
+	// getLikedPlaylist
 	app.get('/user/:userid/likedplaylist', function (req, res) {
 		var user_id = req.params.userid
 		var fromUser = getUserIdFromToken(req.get('Authorization'))
@@ -352,6 +355,7 @@ MongoClient.connect(DBurl, function (err, db) {
 		})
 	}
 
+	// getGroupHistory
 	app.get('/user/:userid/history', function (req, res) {
 		var user_id = req.params.userid
 		var fromUser = getUserIdFromToken(req.get('Authorization'))
@@ -370,6 +374,7 @@ MongoClient.connect(DBurl, function (err, db) {
 		}
 	})
 
+	// getGroupData
 	app.get('/feeditem/:feeditemid', function (req, res) {
 		var feeditem_id = req.params.feeditemid
 		var fromUser = getUserIdFromToken(req.get('Authorization'))
@@ -388,7 +393,7 @@ MongoClient.connect(DBurl, function (err, db) {
 		}
 	})
 
-	// likeFeedItem
+	
 	function likeFeedItem(feedItemId, userId, cb) {
 		db.collection('users').updateOne({
 			_id: userId
@@ -417,6 +422,7 @@ MongoClient.connect(DBurl, function (err, db) {
 		})
 	}
 
+	// likeFeedItem
 	app.put('/feeditem/:feeditemid/likerlist/:userid', function (req, res) {
 		var feeditem_id = req.params.feeditemid
 		var user_id = req.params.userid
@@ -436,7 +442,6 @@ MongoClient.connect(DBurl, function (err, db) {
 		}
 	})
 
-	// unlikeFeedItem
 	function unlikeFeedItem(feedItemId, userId, cb) {
 		db.collection('users').updateOne({
 			_id: userId
@@ -464,6 +469,7 @@ MongoClient.connect(DBurl, function (err, db) {
 		})
 	}
 
+	// unlikeFeedItem
 	app.delete('/feeditem/:feeditemid/likerlist/:userid', function (req, res) {
 		var feedItem_id = req.params.feeditemid
 		var user_id = req.params.userid
@@ -483,7 +489,7 @@ MongoClient.connect(DBurl, function (err, db) {
 		}
 	})
 
-	//search spotify
+	//searchSong - spotify
 	app.post('/search', function (req, res) {
 		var fromUser = getUserIdFromToken(req.get('Authorization'))
 		if (fromUser === currentUserId) {
@@ -515,7 +521,7 @@ MongoClient.connect(DBurl, function (err, db) {
 
 	var google = require('googleapis')
 
-	//search youtube
+	//searchYoutube
 	app.post('/search/youtube', function (req, res) {
 		var fromUser = getUserIdFromToken(req.get('Authorization'))
 		if (fromUser === currentUserId) {
@@ -548,17 +554,18 @@ MongoClient.connect(DBurl, function (err, db) {
 		}, (err, feedItemData) => {
 			if (err) throw (err)
 			else {
-				var newObj = {
-					'index': feedItemData.songs.spotify.length + feedItemData.songs.youtube.length,
-					'_id': songId
-				}
-
-				feedItemData.songs.spotify.push(newObj)
-
 				db.collection('feedItems').updateOne({
 					_id: feedItemId
 				}, {
-					$set: { songs: feedItemData.songs }
+					$push: {
+						'songs.spotify': {
+							'index': feedItemData.songs.totalSongs,
+							'_id': songId
+						}
+					},
+					$inc: {
+						'songs.totalSongs': 1
+					}
 				})
 				cb(null, feedItemData)
 			}

@@ -27,20 +27,20 @@ class MainFeed extends React.Component {
 	render() {
 		return (
 			<div>
-				<div className="container">
+				<div className="container-fluid mainfeed-body">
 					<div className="row">
 						<div className="col-md-12">
 							<ErrorBanner />
 						</div>
 					</div>
-					<div className="col-md-10" id="main">
+					<div className="col-md-9" id="main">
 						{this.state.contents.map((feedItem) => {
 							return (
 								<FeedItem key={feedItem._id} user={this.props.user} data={feedItem} clicked={this.handleClick.bind(this)}/>
 							)
 						})}
 					</div>
-					<div className="col-md-2 side-bar">
+					<div className="col-md-3 side-bar">
 						<SideBar user={this.props.user} onRef={ref => this.sidebar = ref} />
 					</div>
 				</div>
