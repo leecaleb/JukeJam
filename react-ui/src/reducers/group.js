@@ -21,7 +21,6 @@ export default function group(state={
 		}
 	}
 	case 'ADD_SONG_SUCCESS': {
-		console.log(state.playlist)
 		return {
 			...state,
 			playlist: state.playlist.concat([action.song])
