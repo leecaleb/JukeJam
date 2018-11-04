@@ -17,7 +17,6 @@ const WEB_URL = (env === 'development') ? 'http://localhost:3000' : process.env.
 var MongoClient = require('mongodb').MongoClient
 var ObjectID = require('mongodb').ObjectID
 var DBurl = process.env.MONGO_URL
-var currentUserId
 
 MongoClient.connect(DBurl, function (err, db) {
 
@@ -123,7 +122,6 @@ MongoClient.connect(DBurl, function (err, db) {
 									}
 								})
 							} else {
-								currentUserId = userData._id + ''
 								var token = new Buffer(JSON.stringify({ id: userData._id })).toString('base64')
 								res.cookie('token', token)
 								res.redirect(WEB_URL + '/user/' + userData._id)
@@ -162,7 +160,7 @@ MongoClient.connect(DBurl, function (err, db) {
 	app.get('/user/:userid', (req, res) => {
 		var user_id = req.params.userid
 		var fromUser = getUserIdFromToken(req.get('Authorization'))
-		if (fromUser === currentUserId) {
+		if (fromUser === user_id) {
 			db.collection('users').findOne({
 				_id: new ObjectID(user_id)
 			}, (err, userData) => {
@@ -179,9 +177,6 @@ MongoClient.connect(DBurl, function (err, db) {
 		}
 	})
 
-	/**
-   * Resolves a feed item. Internal to the server, since it's synchronous.
-   */
 	function getFeedItem(feedItemId, callback) {
 		db.collection('feedItems').findOne({
 			_id: feedItemId
@@ -206,9 +201,6 @@ MongoClient.connect(DBurl, function (err, db) {
 		})
 	}
 
-	/**
-   * Emulates a REST call to get the feed data for a particular user.
-   */
 	function getFeedData(user, callback) {
 		// console.log('getFeedData user: ' + user)
 		db.collection('users').findOne({
@@ -259,7 +251,7 @@ MongoClient.connect(DBurl, function (err, db) {
 	app.get('/user/:userid/feed', function (req, res) {
 		var user_id = req.params.userid
 		var fromUser = getUserIdFromToken(req.get('Authorization'))
-		if (fromUser === currentUserId) {
+		if (fromUser === user_id) {
 			getFeedData(new ObjectID(user_id), function (err, feedData) {
 				if (err) {
 					res.status(500).send('Database error: ' + err)
@@ -308,7 +300,7 @@ MongoClient.connect(DBurl, function (err, db) {
 	app.get('/user/:userid/likedplaylist', function (req, res) {
 		var user_id = req.params.userid
 		var fromUser = getUserIdFromToken(req.get('Authorization'))
-		if (fromUser === currentUserId) {
+		if (fromUser === user_id) {
 			getLikedPlaylist(new ObjectID(user_id), function (err, playlist) {
 				if (err) {
 					res.status(500).send('Database error: ' + err)
@@ -359,7 +351,7 @@ MongoClient.connect(DBurl, function (err, db) {
 	app.get('/user/:userid/history', function (req, res) {
 		var user_id = req.params.userid
 		var fromUser = getUserIdFromToken(req.get('Authorization'))
-		if (fromUser === currentUserId) {
+		if (fromUser === user_id) {
 			getGroupHistory(new ObjectID(user_id), function (err, group) {
 				if (err) {
 					res.status(500).send('Database error: ' + err)
@@ -377,20 +369,15 @@ MongoClient.connect(DBurl, function (err, db) {
 	// getGroupData
 	app.get('/feeditem/:feeditemid', function (req, res) {
 		var feeditem_id = req.params.feeditemid
-		var fromUser = getUserIdFromToken(req.get('Authorization'))
-		if (fromUser === currentUserId) {
-			getFeedItem(new ObjectID(feeditem_id), function (err, feeditem) {
-				if (err) {
-					res.status(500).send('Database error: ' + err)
-				} else if (feeditem === null) {
-					res.status(400).send('Could not look up feeditem' + feeditem_id)
-				} else {
-					res.send(feeditem)
-				}
-			})
-		} else {
-			res.status(401).send('UNAUTHORIZED: Access denied')
-		}
+		getFeedItem(new ObjectID(feeditem_id), function (err, feeditem) {
+			if (err) {
+				res.status(500).send('Database error: ' + err)
+			} else if (feeditem === null) {
+				res.status(400).send('Could not look up feeditem' + feeditem_id)
+			} else {
+				res.send(feeditem)
+			}
+		})
 	})
 
 	
@@ -427,7 +414,7 @@ MongoClient.connect(DBurl, function (err, db) {
 		var feeditem_id = req.params.feeditemid
 		var user_id = req.params.userid
 		var fromUser = getUserIdFromToken(req.get('Authorization'))
-		if (fromUser === currentUserId) {
+		if (fromUser === user_id) {
 			likeFeedItem(new ObjectID(feeditem_id), new ObjectID(user_id), (err, updatedLikeCounter) => {
 				if (err) {
 					res.status(500).send('Database error: ' + err)
@@ -474,7 +461,7 @@ MongoClient.connect(DBurl, function (err, db) {
 		var feedItem_id = req.params.feeditemid
 		var user_id = req.params.userid
 		var fromUser = getUserIdFromToken(req.get('Authorization'))
-		if (fromUser === currentUserId) {
+		if (fromUser === user_id) {
 			unlikeFeedItem(new ObjectID(feedItem_id), new ObjectID(user_id), (err, updatedLikeCounter) => {
 				if (err) {
 					res.status(500).send('Database error: ' + err)
@@ -491,31 +478,26 @@ MongoClient.connect(DBurl, function (err, db) {
 
 	//searchSong - spotify
 	app.post('/search', function (req, res) {
-		var fromUser = getUserIdFromToken(req.get('Authorization'))
-		if (fromUser === currentUserId) {
-			if (typeof (req.body) === 'string') {
-				var queryText = req.body.trim().toLowerCase()
-				spotifyApi.searchTracks(queryText, { limit: 10 })
-					.then(function (data) {
-						res.send(data.body)
-					}, function (err) {
-						spotifyApi.refreshAccessToken().then((data) => {
-							console.log('access token refreshed!')
-							spotifyApi.setAccessToken(data.body['access_token'])
-							spotifyApi.searchTracks(queryText, { limit: 10 })
-								.then((data) => {
-									res.send(data.body)
-								}, (err) => {
-									console.log(err)
-									res.status(400).end()
-								})
-						}, (err) => {
-							console.log('could not refresh access token', err)
-						})
+		if (typeof (req.body) === 'string') {
+			var queryText = req.body.trim().toLowerCase()
+			spotifyApi.searchTracks(queryText, { limit: 10 })
+				.then(function (data) {
+					res.send(data.body)
+				}, function (err) {
+					spotifyApi.refreshAccessToken().then((data) => {
+						console.log('access token refreshed!')
+						spotifyApi.setAccessToken(data.body['access_token'])
+						spotifyApi.searchTracks(queryText, { limit: 10 })
+							.then((data) => {
+								res.send(data.body)
+							}, (err) => {
+								console.log(err)
+								res.status(400).end()
+							})
+					}, (err) => {
+						console.log('could not refresh access token', err)
 					})
-			}
-		} else {
-			res.status(401).send('UNAUTHORIZED: Access denied')
+				})
 		}
 	})
 
@@ -523,27 +505,22 @@ MongoClient.connect(DBurl, function (err, db) {
 
 	//searchYoutube
 	app.post('/search/youtube', function (req, res) {
-		var fromUser = getUserIdFromToken(req.get('Authorization'))
-		if (fromUser === currentUserId) {
-			if (typeof (req.body) === 'string') {
-				var queryText = req.body.trim().toLowerCase()
-				var service = google.youtube('v3')
-				service.search.list({
-					maxResults: 10,
-					q: queryText,
-					part: 'snippet',
-					type: 'video',
-					key: process.env.YOUTUBE_API_KEY
-				}, function (err, data) {
-					if (err) {
-						console.log('The API returned an error: ' + err)
-						return
-					}
-					res.send(data.items)
-				})
-			}
-		} else {
-			res.status(401).send('UNAUTHORIZED: Access denied')
+		if (typeof (req.body) === 'string') {
+			var queryText = req.body.trim().toLowerCase()
+			var service = google.youtube('v3')
+			service.search.list({
+				maxResults: 10,
+				q: queryText,
+				part: 'snippet',
+				type: 'video',
+				key: process.env.YOUTUBE_API_KEY
+			}, function (err, data) {
+				if (err) {
+					console.log('The API returned an error: ' + err)
+					return
+				}
+				res.send(data.items)
+			})
 		}
 	})
 
@@ -572,43 +549,37 @@ MongoClient.connect(DBurl, function (err, db) {
 		})
 	}
 
-	// TODO
 	app.put('/feeditem/:feeditemid/songlist', function (req, res) {
-		var fromUser = getUserIdFromToken(req.get('Authorization'))
-		if (fromUser === currentUserId) {
-			if (typeof (req.body) === 'string') {
-				var song = req.body.trim()
-				var feedItemId = req.params.feeditemid
-				addSong(
-					new ObjectID(feedItemId), song, (err, feedItem) => {
-						if (err) {
-							res.status(500).send('Database error: ' + err)
-						} else if (feedItem === null) {
-							res.status(400).send('Could not find feeditem ' + feedItemId)
-						} else {
-							spotifyApi.getTracks([song])
-								.then(function (data) {
-									res.send(data.body)
-								}, function (err) {
-									spotifyApi.refreshAccessToken().then((data) => {
-										console.log('access token refreshed!')
-										spotifyApi.setAccessToken(data.body['access_token'])
-										spotifyApi.getTracks([song])
-											.then((data) => {
-												res.send(data.body)
-											}, (err) => {
-												console.error(err)
-												res.status(400).end()
-											})
-									}, (err) => {
-										console.log('could not refresh access token', err)
-									})
+		if (typeof (req.body) === 'string') {
+			var song = req.body.trim()
+			var feedItemId = req.params.feeditemid
+			addSong(
+				new ObjectID(feedItemId), song, (err, feedItem) => {
+					if (err) {
+						res.status(500).send('Database error: ' + err)
+					} else if (feedItem === null) {
+						res.status(400).send('Could not find feeditem ' + feedItemId)
+					} else {
+						spotifyApi.getTracks([song])
+							.then(function (data) {
+								res.send(data.body)
+							}, function (err) {
+								spotifyApi.refreshAccessToken().then((data) => {
+									console.log('access token refreshed!')
+									spotifyApi.setAccessToken(data.body['access_token'])
+									spotifyApi.getTracks([song])
+										.then((data) => {
+											res.send(data.body)
+										}, (err) => {
+											console.error(err)
+											res.status(400).end()
+										})
+								}, (err) => {
+									console.log('could not refresh access token', err)
 								})
-						}
-					})
-			}
-		} else {
-			res.status(401).send('UNAUTHORIZED: Access denied')
+							})
+					}
+				})
 		}
 	})
 
@@ -640,103 +611,88 @@ MongoClient.connect(DBurl, function (err, db) {
 	app.delete('/feeditem/:feeditemid/songlist/:songId', function (req, res) {
 		var song = req.params.songId.trim()
 		var feedItem_id = req.params.feeditemid
-		var fromUser = getUserIdFromToken(req.get('Authorization'))
-		if (fromUser === currentUserId) {
-			removeSpotifySong(new ObjectID(feedItem_id), song, (err, feedItemData) => {
-				if (err) {
-					res.status(500).send('Database err: ' + err)
-				} else if (feedItemData === null) {
-					res.status(400).send('Could not find feedItem ' + feedItem_id)
-				} else {
-					spotifyApi.getTracks([song])
-						.then(function (data) {
-							res.send(data.body)
-						}, function (err) {
-							console.error(err)
-							res.status(400).end()
-						})
-				}
-			})
-		} else {
-			res.status(401).send('UNAUTHORIZED: Access denied')
-		}
+		removeSpotifySong(new ObjectID(feedItem_id), song, (err, feedItemData) => {
+			if (err) {
+				res.status(500).send('Database err: ' + err)
+			} else if (feedItemData === null) {
+				res.status(400).send('Could not find feedItem ' + feedItem_id)
+			} else {
+				spotifyApi.getTracks([song])
+					.then(function (data) {
+						res.send(data.body)
+					}, function (err) {
+						console.error(err)
+						res.status(400).end()
+					})
+			}
+		})
 	})
 
 	// get group's songs from spotify
 	app.get('/feeditem/:feeditemid/spotifysonglist', function (req, res) {
 		var feeditem_id = req.params.feeditemid
-		var fromUser = getUserIdFromToken(req.get('Authorization'))
-		if (fromUser === currentUserId) {
-			getFeedItem(new ObjectID(feeditem_id), function (err, feeditem) {
-				if (err) {
-					res.status(500).send('Database error: ' + err)
-				} else if (feeditem === null) {
-					res.status(400).send('Could not look up feeditem ' + feeditem_id)
-				} else {
-					var spotify = feeditem.songs.spotify
-					var spotifyList = []
-					for (var i = 0; i < spotify.length; ++i) {
-						spotifyList.push(spotify[i]._id)
-					}
-					spotifyApi.getTracks(spotifyList)
-						.then(function (data) {
-							res.send(data.body.tracks)
-						}, function (err) {
-							spotifyApi.refreshAccessToken().then((data) => {
-								console.log('access token refreshed!')
-								spotifyApi.setAccessToken(data.body['access_token'])
-								spotifyApi.getTracks(spotifyList)
-									.then((data) => {
-										res.send(data.body)
-									}, (err) => {
-										console.error(err)
-										res.status(400).end()
-									})
-							}, (err) => {
-								console.log('could not refresh access token', err)
-							})
-						})
+		getFeedItem(new ObjectID(feeditem_id), function (err, feeditem) {
+			if (err) {
+				res.status(500).send('Database error: ' + err)
+			} else if (feeditem === null) {
+				res.status(400).send('Could not look up feeditem ' + feeditem_id)
+			} else {
+				var spotify = feeditem.songs.spotify
+				var spotifyList = []
+				for (var i = 0; i < spotify.length; ++i) {
+					spotifyList.push(spotify[i]._id)
 				}
-			})
-		} else {
-			res.status(401).send('UNAUTHORIZED: Access denied')
-		}
+				spotifyApi.getTracks(spotifyList)
+					.then(function (data) {
+						res.send(data.body.tracks)
+					}, function (err) {
+						spotifyApi.refreshAccessToken().then((data) => {
+							console.log('access token refreshed!')
+							spotifyApi.setAccessToken(data.body['access_token'])
+							spotifyApi.getTracks(spotifyList)
+								.then((data) => {
+									res.send(data.body)
+								}, (err) => {
+									console.error(err)
+									res.status(400).end()
+								})
+						}, (err) => {
+							console.log('could not refresh access token', err)
+						})
+					})
+			}
+		})
 	})
 
 	// get group's songs from youtube
 	app.get('/feeditem/:feeditemid/youtubesonglist', function (req, res) {
 		var feeditem_id = req.params.feeditemid
-		var fromUser = getUserIdFromToken(req.get('Authorization'))
-		if (fromUser === currentUserId) {
-			getFeedItem(new ObjectID(feeditem_id), function (err, feeditem) {
-				if (err) {
-					res.status(500).send('Database error: ' + err)
-				} else if (feeditem === null) {
-					res.status(400).send('Could not look up feeditem ' + feeditem_id)
-				} else {
-					var youtube = feeditem.songs.youtube
-					var youtubeList = ''
-					for (var i = 0; i < youtube.length; ++i) {
-						youtubeList += youtube[i]._id + ', '
-					}
-
-					var service = google.youtube('v3')
-					service.videos.list({
-						id: youtubeList,
-						part: 'snippet',
-						key: process.env.YOUTUBE_API_KEY
-					}, function (err, data) {
-						if (err) {
-							console.log('The API returned an error: ' + err)
-							return
-						}
-						res.send(data.items)
-					})
+		getFeedItem(new ObjectID(feeditem_id), function (err, feeditem) {
+			if (err) {
+				res.status(500).send('Database error: ' + err)
+			} else if (feeditem === null) {
+				res.status(400).send('Could not look up feeditem ' + feeditem_id)
+			} else {
+				var youtube = feeditem.songs.youtube
+				var youtubeList = ''
+				for (var i = 0; i < youtube.length; ++i) {
+					youtubeList += youtube[i]._id + ', '
 				}
-			})
-		} else {
-			res.status(401).send('UNAUTHORIZED: Access denied')
-		}
+
+				var service = google.youtube('v3')
+				service.videos.list({
+					id: youtubeList,
+					part: 'snippet',
+					key: process.env.YOUTUBE_API_KEY
+				}, function (err, data) {
+					if (err) {
+						console.log('The API returned an error: ' + err)
+						return
+					}
+					res.send(data.items)
+				})
+			}
+		})
 	})
 
 	// get lyrics
@@ -745,8 +701,6 @@ MongoClient.connect(DBurl, function (err, db) {
 		const artistName = req.params.artistname
 		const platformType = req.params.platform
 		const api_key = + process.env.MUSIXMATCH_API_KEY
-		console.log(songName)
-		console.log(artistName)
 		if (platformType === 'y') {
 			axios.get('http://api.musixmatch.com/ws/1.1/track.search?q_track_artist=' + songName + '&s_artist_rating=asc&f_has_lyrics=1&apikey=' + api_key)
 				.then((response) => {
@@ -814,34 +768,29 @@ MongoClient.connect(DBurl, function (err, db) {
 	}
 
 	app.put('/feeditem/:feeditemid/youtubesonglist', function (req, res) {
-		var fromUser = getUserIdFromToken(req.get('Authorization'))
-		if (fromUser === currentUserId) {
-			if (typeof (req.body) === 'string') {
-				var song = req.body.trim()
-				var feedItemId = req.params.feeditemid
-				addYoutubeSong(
-					new ObjectID(feedItemId), song, (err, feedItemData) => {
-						if (err) {
-							res.status(500).send('Database err: ' + err)
-						} else if (feedItemData === null) {
-							res.status(400).send('Could not find feedItem ' + feedItemId)
-						}
-					})
-				var service = google.youtube('v3')
-				service.videos.list({
-					id: song,
-					part: 'snippet',
-					key: process.env.YOUTUBE_API_KEY
-				}, function (err, data) {
+		if (typeof (req.body) === 'string') {
+			var song = req.body.trim()
+			var feedItemId = req.params.feeditemid
+			addYoutubeSong(
+				new ObjectID(feedItemId), song, (err, feedItemData) => {
 					if (err) {
-						console.log('The API returned an error: ' + err)
-						return
+						res.status(500).send('Database err: ' + err)
+					} else if (feedItemData === null) {
+						res.status(400).send('Could not find feedItem ' + feedItemId)
 					}
-					res.send(data.items)
 				})
-			}
-		} else {
-			res.status(401).send('UNAUTHORIZED: Access denied')
+			var service = google.youtube('v3')
+			service.videos.list({
+				id: song,
+				part: 'snippet',
+				key: process.env.YOUTUBE_API_KEY
+			}, function (err, data) {
+				if (err) {
+					console.log('The API returned an error: ' + err)
+					return
+				}
+				res.send(data.items)
+			})
 		}
 	})
 
