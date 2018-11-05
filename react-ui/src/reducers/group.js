@@ -48,15 +48,6 @@ export default function group(state={
 			playlist: state.playlist.slice(1,state.playlist.length)
 		}
 	}
-	case 'CLEAR_PLAYLIST': {
-		return {
-			userList: [],
-			playlist: [],
-			currentSong: [],
-			selected_id: 0,
-			votes: 0
-		}
-	}
 	case 'UPVOTE': {
 		return {
 			// TODO

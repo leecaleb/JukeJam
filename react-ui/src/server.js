@@ -98,13 +98,19 @@ export function getLyrics(platformType, songName, artistName, cb) {
 	})
 }
 
+export function addFriend(userId, friendId, cb) {
+	sendXHR('PUT', '/user/' + userId + '/friends', friendId, (xhr) => {
+		cb(JSON.parse(xhr.responseText))
+	})
+}
+
 //to find token, type node and "new Buffer(JSON.stringify({ id: "000000000000000000000004" })).toString('base64');"
 var token = document.cookie.slice(6)
 function sendXHR(verb, resource, body, cb) {
 	var xhr = new XMLHttpRequest()
 	const host = process.env.NODE_ENV === 'development' ? 'http://localhost:5000' : server_url
 	xhr.open(verb, host + resource)
-	xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+	xhr.setRequestHeader('Authorization', 'Bearer ' + token)
 
 	// The below comment tells ESLint that AppError is a global.
 	// Otherwise, ESLint would complain about it! (See what happens in Atom if

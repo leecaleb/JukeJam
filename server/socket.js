@@ -1,6 +1,6 @@
 var WebSocket = require('ws')
 var wss = new WebSocket.Server({ port: 8989 })
-var room = new Object()
+var room = {}
 var socketClients = {}
 const broadcast = (data, ws) => {
 	data.onlineUsers.forEach((user) => {

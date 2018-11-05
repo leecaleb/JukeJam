@@ -13,14 +13,16 @@ var initialData = {
 			'img': 'img/girf.jpg',
 			'feed': new ObjectID('000000000000000000000001'),
 			'groups': [new ObjectID('000000000000000000000002'), new ObjectID('000000000000000000000001')],
-			'likedPlaylist':[new ObjectID('000000000000000000000001')]
+			'likedPlaylist': [new ObjectID('000000000000000000000001')],
+			'friends': []
 		},
 		'2': {
 			'_id': new ObjectID('000000000000000000000002'),
 			'fullName': 'Someone Else',
 			'feed': new ObjectID('000000000000000000000001'),
 			'groups': [],
-			'likedPlaylist':[new ObjectID('000000000000000000000001'), new ObjectID('000000000000000000000002')]
+			'likedPlaylist': [new ObjectID('000000000000000000000001'), new ObjectID('000000000000000000000002')],
+			'friends': [new ObjectID('000000000000000000000004')]
 		},
 		'3': {
 			'_id': new ObjectID('000000000000000000000003'),
@@ -28,7 +30,8 @@ var initialData = {
 			'img': 'img/user2.png',
 			'feed': new ObjectID('000000000000000000000003'),
 			'groups': [new ObjectID('000000000000000000000001')],
-			'likedPlaylist':[new ObjectID('000000000000000000000002')]
+			'likedPlaylist': [new ObjectID('000000000000000000000002')],
+			'friends': []
 		},
 		// This is me!
 		'4': {
@@ -37,7 +40,8 @@ var initialData = {
 			'img': 'https://images.unsplash.com/photo-1515536765-9b2a70c4b333?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=e28f973699b9805ba500348e3ecdc38a&auto=format&fit=crop&w=1576&q=80',
 			'feed': new ObjectID('000000000000000000000004'),
 			'groups': [new ObjectID('000000000000000000000001')],
-			'likedPlaylist':[new ObjectID('000000000000000000000002')]
+			'likedPlaylist': [new ObjectID('000000000000000000000002')],
+			'friends': [new ObjectID('000000000000000000000002')]
 		}
 	},
 	'feeds': {

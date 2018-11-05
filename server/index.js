@@ -794,6 +794,52 @@ MongoClient.connect(DBurl, function (err, db) {
 		}
 	})
 
+	// addFriend
+	app.put('/user/:userid/friends', (req, res) => {
+		var user_id = req.params.userid
+		var friend_id = req.body.trim()
+		db.collection('users').findOneAndUpdate({
+			_id: new ObjectID(user_id)
+		}, {
+			$addToSet: { friends: new ObjectID(friend_id) }
+		}, {
+			returnOriginal: false
+		}, (err, userData) => {
+			if (err) throw err
+			updateFeed(user_id, friend_id, (err, feed) => {
+				if (err) throw err
+				res.send(userData.value)
+			})
+		})
+	})
+
+	function updateFeed(user_id, friend_id, cb) {
+		db.collection('users').findOne({
+			_id: new ObjectID(user_id)
+		}, (err, userData) => {
+			if (err) throw err
+			db.collection('users').findOne({
+				_id: new ObjectID(friend_id)
+			}, (err, friendData) => {
+				if (err) throw  err
+				db.collection('feeds').findOneAndUpdate({
+					_id: userData.feed
+				}, {
+					$addToSet: {
+						contents: {
+							$each: friendData.groups
+						}
+					}
+				}, {
+					returnOriginal: false
+				}, (err, feedData) => {
+					if (err) throw err
+					cb(null, feedData.value)
+				})
+			})
+		})
+	}
+
 	/**
   * Get the user ID from a token. Returns -1 (an invalid ID)
   * if it fails.

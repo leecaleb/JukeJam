@@ -17,7 +17,7 @@ import { loadState, saveState } from './localStorage'
 import createSagaMiddleware from 'redux-saga'
 import rootSaga from './sagas/index'
 
-localStorage.clear()
+// localStorage.clear()
 
 const persistedState = loadState()
 const sagaMiddleware = createSagaMiddleware()

@@ -1,4 +1,4 @@
-import { loadUserList, newSongAdded, nextSong, clearPlaylist } from '../actions'
+import { loadUserList, newSongAdded, nextSong } from '../actions'
 
 export const setupSocket = (dispatch, url, groupPlaylistID, userData) => {
 	const socket = new WebSocket('ws://localhost:8989')
@@ -31,7 +31,6 @@ export const setupSocket = (dispatch, url, groupPlaylistID, userData) => {
 	}
 
 	socket.onclose = () => {
-		dispatch(clearPlaylist())
 	}
 
 	return socket
