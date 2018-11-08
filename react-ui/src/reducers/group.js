@@ -3,7 +3,7 @@ export default function group(state={
 	userList: [],
 	playlist: [],
 	currentSong: [],
-	selected_id: 0,
+	selected_id: 8,
 	votes: 0
 }, action) {
 	switch (action.type) {
@@ -46,6 +46,15 @@ export default function group(state={
 			selected_id: state.selected_id+1,
 			currentSong: action.nextSong,
 			playlist: state.playlist.slice(1,state.playlist.length)
+		}
+	}
+	case 'CLEAR_PLAYLIST': {
+		return {
+			userList: [],
+			playlist: [],
+			currentSong: [],
+			selected_id: 8,
+			votes: 0
 		}
 	}
 	case 'UPVOTE': {

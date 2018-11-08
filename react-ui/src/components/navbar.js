@@ -5,26 +5,28 @@ import { connect } from 'react-redux';
 class NavBar extends React.Component {
 	constructor(props) {
 		super(props)
-		this.test = this.test.bind(this)
+		this.handleToCreateRoom = this.handleToCreateRoom.bind(this)
 	}
 
-	test() {
+	handleToCreateRoom() {
+		document.getElementById('mainfeed-body').style.opacity = 0.2
+		// document.getElementById('create-room-modal').style.visibility = 'visible'
 	}
 
 	render() {
 		return (
 			<div>
 				<nav className="navbar navbar-fixed-top">
-					<div className="container-fluid" style={{ marginLeft: 26 }}>
+					<div className="container-fluid" style={{ marginLeft: 26, width:'100%' }}>
 						<div className="navbar-header">
-							<button type="button" className="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
+							<button type="button" className="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-collapse" aria-expanded="false">
 								<span className="sr-only">Toggle navigation</span>
-								<span className="icon-bar"></span>
-								<span className="icon-bar"></span>
-								<span className="icon-bar"></span>
 							</button>
 							<Link className="navbar-brand" to={'/user/' + this.props.user._id}>JukeJam</Link>
 						</div>
+						<ul className="nav navbar-nav navbar-right" id="create-room-button">
+							<li><a><button onClick={this.handleToCreateRoom}>Create Room</button></a></li>
+						</ul>
 					</div>
 				</nav>
 			</div>
@@ -34,7 +36,7 @@ class NavBar extends React.Component {
 
 const mapStateToProps = (state) => {
 	return {
-		user: state.user
+		user: state.user.userData
 	}
 }
 

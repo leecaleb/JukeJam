@@ -106,18 +106,21 @@ MongoClient.connect(DBurl, function (err, db) {
 							if (err) {
 								console.log(err)
 							} else if (userData === null) {
+								var new_id = new ObjectID()
 								db.collection('users').insertOne({
-									_id: new ObjectID(),
+									_id: new_id,
 									fullName: data.body.id,
 									img: '',
-									feed: {},
+									newUser: true,
+									feed: new_id,
 									groups: [],
-									likedPlaylist: []
+									likedPlaylist: [],
+									friends: []
 								}, (err, new_user) => {
 									if (err) {
 										console.log(err)
 									} else {
-										// res.cookie('token', new Buffer(JSON.stringify({ id: new_user.insertedId })).toString('base64'))
+										res.cookie('token', new Buffer(JSON.stringify({ id: new_user.insertedId })).toString('base64'))
 										res.redirect(WEB_URL + '/user/' + new_user.insertedId)
 									}
 								})
@@ -202,7 +205,6 @@ MongoClient.connect(DBurl, function (err, db) {
 	}
 
 	function getFeedData(user, callback) {
-		// console.log('getFeedData user: ' + user)
 		db.collection('users').findOne({
 			_id: user
 		}, function (err, userData) {
@@ -217,32 +219,39 @@ MongoClient.connect(DBurl, function (err, db) {
 				if (err) {
 					return callback(err)
 				} else if (feedData === null) {
-					return callback(null, [])
-				}
-				var resolvedContents = []
-
-				function processNextFeedItem(i) {
-					getFeedItem(feedData.contents[i], function (err, feedItem) {
-						if (err) {
-							callback(err)
-						} else {
-							resolvedContents.push(feedItem)
-							if (resolvedContents.length === feedData.contents.length) {
-								feedData.contents = resolvedContents
-								callback(null, feedData)
-							} else {
-								processNextFeedItem(i + 1)
-							}
-						}
+					db.collection('feeds').insertOne({
+						_id: userData.feed,
+						contents: []
+					}, (err, response) => {
+						if (err) throw err
+						callback(null, response.ops[0])
 					})
-				}
-
-				if (feedData.contents.length === 0) {
-					// console.log('feedData.contents.length: ' + feedData.contents.length)
-					callback(null, feedData)
 				} else {
-					processNextFeedItem(0)
+					var resolvedContents = []
+
+					var processNextFeedItem = (i) => {
+						getFeedItem(feedData.contents[i], (err, feedItem) => {
+							if (err) {
+								callback(err)
+							} else {
+								resolvedContents.push(feedItem)
+								if (resolvedContents.length === feedData.contents.length) {
+									feedData.contents = resolvedContents
+									callback(null, feedData)
+								} else {
+									processNextFeedItem(i + 1)
+								}
+							}
+						})
+					}
+
+					if (feedData.contents.length === 0) {
+						callback(null, feedData)
+					} else {
+						processNextFeedItem(0)
+					}
 				}
+				
 			})
 		})
 	}
@@ -263,6 +272,55 @@ MongoClient.connect(DBurl, function (err, db) {
 			})
 		} else {
 			res.status(401).send('UNAUTHORIZED: Access denied')
+		}
+	})
+
+	//TODO: createRoom
+	app.post('/user/:userid/feeditem', (req, res) => {
+		const user_id = req.params.userid
+		const from_user = getUserIdFromToken(req.get('Authorization'))
+		const room_name = req.body.trim()
+		if (user_id === from_user) { // add to user's group + each friend's feed contents
+			db.feedItems.insert({ // look into inserOne and its write response op
+				groupName: room_name,
+				author: new ObjectID(user_id),
+				postDate: new Date(),
+				location: '',
+				groupUsers: [new ObjectID(user_id)],
+				songs: {
+					totalSongs: 0,
+					selected_id: 0,
+					youtube: [],
+					spotify: []
+				},
+				likerList: []
+			}, (err, writeResult) => {
+				if (err) throw err
+				console.log(writeResult._id)
+				db.collection('users').findOneAndUpdate({
+					_id: new ObjectID(user_id)
+				}, {
+					$addToSet: { groups: writeResult._id }
+				}, (err, userData) => {
+					if (err) throw err
+					console.log(userData.friends)
+					// add new added feeditem id to each friend's feed and creator's feed contents
+					db.feeds.update({
+						_id: new ObjectID(user_id)
+					}, {
+						$addToSet: { contents: writeResult._id }
+					})
+
+					userData.friends.forEach((friend_id) => {
+						db.feeds.update({
+							_id: friend_id
+						}, {
+							$addToSet: { contents: writeResult._id}
+						})
+					})
+					res.status(200).send(writeResult._id)
+				})
+			})
 		}
 	})
 
@@ -839,6 +897,23 @@ MongoClient.connect(DBurl, function (err, db) {
 			})
 		})
 	}
+
+	app.put('/feeditem/:roomid/:userid', (req, res) => {
+		// var user_id = req.params.userid
+		var room_id = req.params.roomid
+		var friend_id = req.body.trim()
+		db.collection('users').findOneAndUpdate({
+			_id: new ObjectID(friend_id)
+		}, {
+			$set: { newUser: false },
+			$addToSet: { groups: new ObjectID(room_id) }
+		}, {
+			returnOriginal: false
+		}, (err, userData) => {
+			if (err) throw err
+			res.status(200).send(userData.value)
+		})
+	})
 
 	/**
   * Get the user ID from a token. Returns -1 (an invalid ID)

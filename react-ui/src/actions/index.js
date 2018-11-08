@@ -49,6 +49,10 @@ export const addMarkToRedux = (userData) => ({
 	userData
 })
 
+export const clearPlaylist = () => ({
+	type: 'CLEAR_PLAYLIST'
+})
+
 export const upvote = () => ({
 	type: 'UPVOTE'
 })

@@ -48,20 +48,23 @@ class ProfilePage extends React.Component {
 class GroupAuthed extends React.Component {
 
 	componentDidMount() {
-		var loc = window.location
-		var new_url = ''
-		if (loc.protoccol === 'https:') {
-			new_url = 'wss:'
-		} else {
-			new_url = 'ws:'
+		if (store.getState().user.userData.groups.includes(this.props.params.id)) {
+			var loc = window.location
+			var new_url = ''
+			if (loc.protoccol === 'https:') {
+				new_url = 'wss:'
+			} else {
+				new_url = 'ws:'
+			}
+			new_url += '//' + loc.host + loc.pathname
+			socket = setupSocket(store.dispatch, new_url, this.props.params.id, store.getState().user.userData)
+			sagaMiddleware.run(rootSaga, { socket })
 		}
-		new_url += '//' + loc.host + loc.pathname
-		socket = setupSocket(store.dispatch, new_url, this.props.params.id, store.getState().user)
-		sagaMiddleware.run(rootSaga, { socket })
 	}
 
 	render() {
-		return <GroupInfo groupId={this.props.params.id} />
+		const inGroup = store.getState().user.userData.groups.includes(this.props.params.id)
+		return <GroupInfo auth={inGroup} groupId={this.props.params.id} />
 	}
 }
 
@@ -72,14 +75,14 @@ class GroupProfile extends React.Component {
 }
 
 class MainPage extends React.Component {
-	componentDidMount() {
+	componentWillMount() {
 		getUserData(this.props.params.id, (userData) => {
 			store.dispatch(loadUserData(userData))
 		})
 	}
 
 	render() {
-		return <MainFeed user={this.props.params.id} />
+		return <MainFeed user_id={this.props.params.id} />
 	}
 }
 
@@ -124,7 +127,7 @@ ReactDOM.render((
 				<IndexRoute component={HomePage} />
 				<Route path="user/:id" component={MainPage} />
 				<Route path="profile/:id" component={ProfilePage} />
-				<Route path="group/:id" onLeave={() => socket.close()} component={GroupAuthed} />
+				<Route path="group/:id" onLeave={() => socket? socket.close(): null} component={GroupAuthed} />
 				<Route path="group/:id/:grouptitle" component={GroupProfile} />
 			</Route>
 		</Router>

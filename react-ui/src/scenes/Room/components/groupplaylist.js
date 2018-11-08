@@ -125,8 +125,8 @@ class GroupPlaylist extends React.Component {
 		}, this.playsong.handlePause())
 	}
 
-	playNextSong () {
-		this.props.playNext([this.props.group.playlist[0]])
+	async playNextSong () {
+		await this.props.playNext([this.props.group.playlist[0]])
 		this.handlePlay()
 	}
 
@@ -144,8 +144,9 @@ class GroupPlaylist extends React.Component {
 	}
 
 	render() {
+		// console.log(this.props.group)
 		let cur_song = []
-		if (this.props.group.currentSong) {
+		if (this.props.group.currentSong[0] !== null) {
 			cur_song = this.props.group.currentSong
 		}
 		return (
@@ -181,8 +182,10 @@ const mapDispatchToProps = (dispatch) => {
 	}
 }
 
-const GroupPlaylistContainer = connect((store) => ({
-	group: store.group
-}), mapDispatchToProps) (GroupPlaylist)
+const mapStateToProps = (store) => {
+	return {
+		group: store.group
+	}
+}
 
-export default GroupPlaylistContainer
+export default connect(mapStateToProps, mapDispatchToProps) (GroupPlaylist)

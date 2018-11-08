@@ -104,6 +104,18 @@ export function addFriend(userId, friendId, cb) {
 	})
 }
 
+export function addToRoom(userId, friendId, roomId, cb) {
+	sendXHR('PUT', '/feeditem/' + roomId + '/' + userId, friendId, (xhr) => {
+		cb(JSON.parse(xhr.responseText))
+	})
+}
+
+export function createRoom(userId, roomName, cb) {
+	sendXHR('POST', '/user/' + userId, '/feeditem', roomName, (xhr) => {
+		cb(JSON.parse(xhr.responseText))
+	})
+}
+
 //to find token, type node and "new Buffer(JSON.stringify({ id: "000000000000000000000004" })).toString('base64');"
 var token = document.cookie.slice(6)
 function sendXHR(verb, resource, body, cb) {

@@ -9,7 +9,7 @@ var initialData = {
 		// This user has id "1".
 		'1': {
 			'_id': new ObjectID('000000000000000000000001'),
-			'fullName': 'q3vtjiig6bwgyicjety7m5644',
+			'fullName': 'q3vtjiig6bwgyicjety7m564',
 			'img': 'img/girf.jpg',
 			'feed': new ObjectID('000000000000000000000001'),
 			'groups': [new ObjectID('000000000000000000000002'), new ObjectID('000000000000000000000001')],
