@@ -1,7 +1,7 @@
 import React from 'react'
 import SongDisplay from './songdisplay'
 import PlayingSongDisplay from './playingsongdisplay'
-import { getPlaylist, getYoutubePlaylist } from '../../../server'
+import { getPlaylist } from '../../../server'
 import { connect } from 'react-redux'
 import { bindActionCreators } from 'redux'
 import { loadPlaylist, playNext } from '../../../actions/index'

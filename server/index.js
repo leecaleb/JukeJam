@@ -21,7 +21,7 @@ var DBurl = process.env.MONGO_URL
 
 MongoClient.connect(DBurl, function (err, db) {
 	if (err) {
-		console.log('error occured when connecting to the database: ', err)
+		console.log('error occurred when connecting to the database: ', err)
 	}
 
 	app.use(cookieParser())
@@ -44,8 +44,6 @@ MongoClient.connect(DBurl, function (err, db) {
 		console.log(`Listening on port ${PORT}`)
 	})
 
-	
-
 	const client_id = process.env.CLIENT_ID
 	const client_secret = process.env.CLIENT_SECRET
 	var redirect_uri = SERVER_HOST + '/callback' // Your redirect uri
@@ -57,7 +55,6 @@ MongoClient.connect(DBurl, function (err, db) {
 		clientSecret: client_secret,
 		redirectUri: redirect_uri
 	})
-
 
 	const SpotifyStrategy = require('passport-spotify').Strategy
 
@@ -92,60 +89,66 @@ MongoClient.connect(DBurl, function (err, db) {
 	), (req, res) => { }
 	)
 
+	function createNewUser(data, cb) {
+		var new_id = new ObjectID()
+		db.collection('users').insertOne({
+			_id: new_id,
+			fullName: data.body.id,
+			img: '',
+			newUser: true,
+			feed: new_id,
+			groups: [],
+			likedPlaylist: [],
+			friends: []
+		}, (err, new_user) => {
+			if (err) {
+				if (err) cb(err, null)
+			} else {
+				cb(null, new_user)
+			}
+		})
+	}
+
 	app.get('/callback', function (req, res) {
 		// your application requests refresh and access tokens
 		// after checking the state parameter
 		var code = req.query.code || null
-		spotifyApi.authorizationCodeGrant(code)
-			.then(function (data) {
-				// Set the access token on the API object to use it in later calls
-				const access_token = data.body['access_token']
-				const refresh_token = data.body['refresh_token']
-				spotifyApi.setAccessToken(access_token)
-				spotifyApi.setRefreshToken(refresh_token)
-				spotifyApi.getMe()
-					.then(function (data) {
-						db.collection('users').findOne({
-							fullName: data.body.id
-						}, (err, userData) => {
+		spotifyApi.authorizationCodeGrant(code).then(function (data) {
+			// Set the access token on the API object to use it in later calls
+			const access_token = data.body['access_token']
+			const refresh_token = data.body['refresh_token']
+			spotifyApi.setAccessToken(access_token)
+			spotifyApi.setRefreshToken(refresh_token)
+			spotifyApi.getMe().then(function (data) {
+				db.collection('users').findOne({
+					fullName: data.body.id
+				}, (err, userData) => {
+					var userId
+					if (err) {
+						if (err) throw err
+					} else if (userData === null) {
+						createNewUser(data, (err, new_user) => {
 							if (err) {
-								if (err) throw err
-							} else if (userData === null) {
-								var new_id = new ObjectID()
-								db.collection('users').insertOne({
-									_id: new_id,
-									fullName: data.body.id,
-									img: '',
-									newUser: true,
-									feed: new_id,
-									groups: [],
-									likedPlaylist: [],
-									friends: []
-								}, (err, new_user) => {
-									if (err) {
-										if (err) throw err
-									} else {
-										res.cookie('token', new Buffer(JSON.stringify({ id: new_user.insertedId })).toString('base64'), { domain: DOMAIN, overwrite: true})
-										res.cookie('spotify-access-token', access_token, { domain: DOMAIN, overwrite: true })
-										res.cookie('spotify-refresh-token', refresh_token, { domain: DOMAIN, verwrite: true })
-										res.redirect(WEB_URL + '/user/' + new_user.insertedId)
-									}
-								})
-							} else {
-								var token = new Buffer(JSON.stringify({ id: userData._id })).toString('base64')
-								res.cookie('token', token, { domain: DOMAIN, overwrite: true  })
-								res.cookie('spotify-access-token', access_token, { domain: DOMAIN, overwrite: true  })
-								res.cookie('spotify-refresh-token', refresh_token, { domain: DOMAIN, overwrite: true  })
-								res.redirect(WEB_URL + '/user/' + userData._id)
+								res.status(500).send('Error occurred when adding new user to database, please sign in again: ', err)
 							}
+							userId = new_user.insertedId
 						})
-					}, function (err) {
-						console.log('Something went wrong!', err)
-					})
+					} else {
+						userId = userData._id
+					}
+					var token = new Buffer(JSON.stringify({ id: userId })).toString('base64')
+					res.cookie('token', token, { domain: DOMAIN, overwrite: true  })
+					res.cookie('spotify-access-token', access_token, { domain: DOMAIN, overwrite: true  })
+					res.cookie('spotify-refresh-token', refresh_token, { domain: DOMAIN, overwrite: true  })
+					res.redirect(WEB_URL + '/user/' + userId)
+				})
 			}, function (err) {
-				console.log('Something went wrong!', err)
-				res.status(401).end()
+				console.log('Error occurred when retrieving user\'s Spotify account information, please sign in again', err)
 			})
+		}, function (err) {
+			console.log('Error occurred with Spotify authorization, please sign in again', err)
+			res.status(401).end()
+		})
 	})
 
 	app.get('/logout', (req, res) => {
@@ -577,16 +580,15 @@ MongoClient.connect(DBurl, function (err, db) {
 	}
 
 	function getTrackThumbnail(songId, cb) {
-		spotifyApi.getTracks([songId])
-			.then(function (data) {
-				cb(null, data.body.tracks[0].album.images[0].url)
-			}, function (err) {
-				spotifyApi.refreshAccessToken().then((data) => {
-					spotifyApi.setAccessToken(data.body['access_token'])
-				}, (err) => {
-					cb('could not refresh access token: ' + err, null)
-				})
+		spotifyApi.getTracks([songId]).then(function (data) {
+			cb(null, data.body.tracks[0].album.images[0].url)
+		}, function (err) {
+			spotifyApi.refreshAccessToken().then((data) => {
+				spotifyApi.setAccessToken(data.body['access_token'])
+			}, (err) => {
+				cb('could not refresh access token: ' + err, null)
 			})
+		})
 	}
 
 
@@ -594,24 +596,22 @@ MongoClient.connect(DBurl, function (err, db) {
 	app.post('/search', function (req, res) {
 		if (typeof (req.body) === 'string') {
 			var queryText = req.body.trim().toLowerCase()
-			spotifyApi.searchTracks(queryText, { limit: 10 })
-				.then(function (data) {
-					res.send(data.body)
-				}, function (err) {
-					spotifyApi.refreshAccessToken().then((data) => {
-						console.log('access token refreshed!')
-						spotifyApi.setAccessToken(data.body['access_token'])
-						spotifyApi.searchTracks(queryText, { limit: 10 })
-							.then((data) => {
-								res.send(data.body)
-							}, (err) => {
-								console.log(err)
-								res.status(400).end()
-							})
+			spotifyApi.searchTracks(queryText, { limit: 10 }).then(function (data) {
+				res.send(data.body)
+			}, function (err) {
+				spotifyApi.refreshAccessToken().then((data) => {
+					console.log('access token refreshed!')
+					spotifyApi.setAccessToken(data.body['access_token'])
+					spotifyApi.searchTracks(queryText, { limit: 10 }).then((data) => {
+						res.send(data.body)
 					}, (err) => {
-						console.log('could not refresh access token', err)
+						console.log(err)
+						res.status(400).end()
 					})
+				}, (err) => {
+					console.log('could not refresh access token', err)
 				})
+			})
 		}
 	})
 
@@ -677,24 +677,22 @@ MongoClient.connect(DBurl, function (err, db) {
 					} else if (feedItem === null) {
 						res.status(400).send('Could not find feeditem ' + feedItemId)
 					} else {
-						spotifyApi.getTracks([song])
-							.then(function (data) {
-								res.send(data.body)
-							}, function (err) {
-								spotifyApi.refreshAccessToken().then((data) => {
-									console.log('access token refreshed!')
-									spotifyApi.setAccessToken(data.body['access_token'])
-									spotifyApi.getTracks([song])
-										.then((data) => {
-											res.send(data.body)
-										}, (err) => {
-											console.error(err)
-											res.status(400).end()
-										})
+						spotifyApi.getTracks([song]).then(function (data) {
+							res.send(data.body)
+						}, function (err) {
+							spotifyApi.refreshAccessToken().then((data) => {
+								console.log('access token refreshed!')
+								spotifyApi.setAccessToken(data.body['access_token'])
+								spotifyApi.getTracks([song]).then((data) => {
+									res.send(data.body)
 								}, (err) => {
-									console.log('could not refresh access token', err)
+									console.error(err)
+									res.status(400).end()
 								})
+							}, (err) => {
+								console.log('could not refresh access token', err)
 							})
+						})
 					}
 				})
 		}
@@ -734,46 +732,11 @@ MongoClient.connect(DBurl, function (err, db) {
 			} else if (feedItemData === null) {
 				res.status(400).send('Could not find feedItem ' + feedItem_id)
 			} else {
-				spotifyApi.getTracks([song])
-					.then(function (data) {
-						res.send(data.body)
-					}, function (err) {
-						res.status(400).send(err)
-					})
-			}
-		})
-	})
-
-	// get group's songs from spotify
-	app.get('/feeditem/:feeditemid/spotifysonglist', function (req, res) {
-		var feeditem_id = req.params.feeditemid
-		getFeedItem(new ObjectID(feeditem_id), function (err, feeditem) {
-			if (err) {
-				res.status(500).send('Database error: ' + err)
-			} else if (feeditem === null) {
-				res.status(400).send('Could not look up feeditem ' + feeditem_id)
-			} else {
-				var spotify = feeditem.songs.spotify
-				var spotifyList = []
-				for (var i = 0; i < spotify.length; ++i) {
-					spotifyList.push(spotify[i]._id)
-				}
-				spotifyApi.getTracks(spotifyList)
-					.then(function (data) {
-						res.send(data.body.tracks)
-					}, function (err) {
-						spotifyApi.refreshAccessToken().then((data) => {
-							spotifyApi.setAccessToken(data.body['access_token'])
-							spotifyApi.getTracks(spotifyList)
-								.then((data) => {
-									res.send(data.body)
-								}, (err) => {
-									res.status(400).send(err)
-								})
-						}, (err) => {
-							console.log('could not refresh access token', err)
-						})
-					})
+				spotifyApi.getTracks([song]).then(function (data) {
+					res.send(data.body)
+				}, function (err) {
+					res.status(400).send(err)
+				})
 			}
 		})
 	})
@@ -782,26 +745,24 @@ MongoClient.connect(DBurl, function (err, db) {
 		if (id_list.length === 0) {
 			cb(null, [])
 		} else {
-			spotifyApi.getTracks(id_list)
-				.then((data) => {
-					cb(null, data.body.tracks)
-				}, (err) => {
-					if (err.statusCode === 401) {
-						spotifyApi.refreshAccessToken().then((data) => {
-							spotifyApi.setAccessToken(data.body['access_token'])
-							spotifyApi.getTracks(id_list)
-								.then((data) => {
-									cb(null, data.body.tracks)
-								}, (err) => {
-									cb(err, null)
-								})
+			spotifyApi.getTracks(id_list).then((data) => {
+				cb(null, data.body.tracks)
+			}, (err) => {
+				if (err.statusCode === 401) {
+					spotifyApi.refreshAccessToken().then((data) => {
+						spotifyApi.setAccessToken(data.body['access_token'])
+						spotifyApi.getTracks(id_list).then((data) => {
+							cb(null, data.body.tracks)
 						}, (err) => {
-							cb(err + ': please log in with your spotify acount again', null)
+							cb(err, null)
 						})
-					} else {
-						cb(err, null)
-					}
-				})
+					}, (err) => {
+						cb(err + ': please log in with your spotify acount again', null)
+					})
+				} else {
+					cb(err, null)
+				}
+			})
 		}
 	}
 
@@ -889,28 +850,6 @@ MongoClient.connect(DBurl, function (err, db) {
 		})
 	})
 
-	// get group's songs from youtube
-	app.get('/feeditem/:feeditemid/youtubesonglist', function (req, res) {
-		var feeditem_id = req.params.feeditemid
-		getFeedItem(new ObjectID(feeditem_id), function (err, feeditem) {
-			if (err) {
-				res.status(500).send('Database error: ' + err)
-			} else if (feeditem === null) {
-				res.status(400).send('Could not look up feeditem ' + feeditem_id)
-			} else {
-				var youtube = feeditem.songs.youtube
-				var youtubeList = ''
-				for (var i = 0; i < youtube.length; ++i) {
-					youtubeList += youtube[i]._id + ', '
-				}
-				getYoutubeTracks(youtubeList, (err, data) => {
-					if (err) res.status(400).send(err)
-					res.status(200).send(data)
-				})
-			}
-		})
-	})
-
 	// get lyrics
 	app.get('/lyrics/:platform/:songname/:artistname', (req, res) => {
 		const songName = req.params.songname
@@ -918,43 +857,39 @@ MongoClient.connect(DBurl, function (err, db) {
 		const platformType = req.params.platform
 		const api_key = + process.env.MUSIXMATCH_API_KEY
 		if (platformType === 'y') {
-			axios.get('http://api.musixmatch.com/ws/1.1/track.search?q_track_artist=' + songName + '&s_artist_rating=asc&f_has_lyrics=1&apikey=' + api_key)
-				.then((response) => {
-					console.log(response.data.message.body.track_list[0].track)
-					const track = response.data.message.body.track_list[0].track
-					axios.get('http://api.musixmatch.com/ws/1.1/track.lyrics.get?track_id=' + track.track_id + '&apikey=' + api_key)
-						.then((response) => {
-							console.log(response.data.message.body.lyrics)
-							if (response.data.message.body.lyrics !== undefined) {
-								res.send(response.data.message.body.lyrics)
-							} else {
-								res.send({})
-							}
-						}).catch((err) => {
-							console.log('can\'t get lyrics: ' + err)
-						})
+			axios.get('http://api.musixmatch.com/ws/1.1/track.search?q_track_artist=' + songName + '&s_artist_rating=asc&f_has_lyrics=1&apikey=' + api_key).then((response) => {
+				console.log(response.data.message.body.track_list[0].track)
+				const track = response.data.message.body.track_list[0].track
+				axios.get('http://api.musixmatch.com/ws/1.1/track.lyrics.get?track_id=' + track.track_id + '&apikey=' + api_key).then((response) => {
+					console.log(response.data.message.body.lyrics)
+					if (response.data.message.body.lyrics !== undefined) {
+						res.send(response.data.message.body.lyrics)
+					} else {
+						res.send({})
+					}
 				}).catch((err) => {
-					console.log(err)
+					console.log('can\'t get lyrics: ' + err)
 				})
+			}).catch((err) => {
+				console.log(err)
+			})
 		} else {
-			axios.get('http://api.musixmatch.com/ws/1.1/track.search?q_track=' + songName + '&q_artist=' + artistName + '&s_artist_rating=asc&f_has_lyrics=1&apikey=' + api_key)
-				.then((response) => {
-					console.log(response.data)
-					const track = response.data.message.body.track_list[0].track
-					axios.get('http://api.musixmatch.com/ws/1.1/track.lyrics.get?track_id=' + track.track_id + '&apikey=' + api_key)
-						.then((response) => {
-							console.log(response.data.message.body.lyrics)
-							if (response.data.message.body.lyrics !== undefined) {
-								res.send(response.data.message.body.lyrics)
-							} else {
-								res.send({})
-							}
-						}).catch((err) => {
-							console.log('can\'t get lyrics: ' + err)
-						})
+			axios.get('http://api.musixmatch.com/ws/1.1/track.search?q_track=' + songName + '&q_artist=' + artistName + '&s_artist_rating=asc&f_has_lyrics=1&apikey=' + api_key).then((response) => {
+				console.log(response.data)
+				const track = response.data.message.body.track_list[0].track
+				axios.get('http://api.musixmatch.com/ws/1.1/track.lyrics.get?track_id=' + track.track_id + '&apikey=' + api_key).then((response) => {
+					console.log(response.data.message.body.lyrics)
+					if (response.data.message.body.lyrics !== undefined) {
+						res.send(response.data.message.body.lyrics)
+					} else {
+						res.send({})
+					}
 				}).catch((err) => {
-					console.log(err)
+					console.log('can\'t get lyrics: ' + err)
 				})
+			}).catch((err) => {
+				console.log(err)
+			})
 		}		
 	})
 

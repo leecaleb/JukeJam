@@ -69,20 +69,8 @@ export function removeSong(feedItemId, songId, cb) {
 	})
 }
 
-// export function getPlaylist(feedItemId, cb) {
-// 	sendXHR('GET', '/feeditem/' + feedItemId + '/spotifysonglist', undefined, (xhr) => {
-// 		cb(JSON.parse(xhr.responseText))
-// 	})
-// }
-
 export function getPlaylist(feedItemId, cb) {
 	sendXHR('GET', '/feeditem/' + feedItemId + '/playlist', undefined, (xhr) => {
-		cb(JSON.parse(xhr.responseText))
-	})
-}
-
-export function getYoutubePlaylist(feedItemId, cb) {
-	sendXHR('GET', '/feeditem/' + feedItemId + '/youtubesonglist', undefined, (xhr) => {
 		cb(JSON.parse(xhr.responseText))
 	})
 }
