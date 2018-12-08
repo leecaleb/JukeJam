@@ -131,7 +131,12 @@ a.navbar-brand:visited{
   margin: 0 2px;
   padding: 3px 8px;
   border-radius: 7px;
-  background-color: lightblue;
+  background-color: lightblue !important;
+}
+
+.friend-to-add:hover {
+  background-color: #f06292 !important;
+  cursor: pointer;
 }
 
 .mainfeed-body {

@@ -11,7 +11,8 @@ class CreateRoomModal extends React.Component{
 			roomName: '',
 			potentialFriendlist: this.props.user.userData.friends,
 			friendsToAdd: [],
-			showFriendlist: false
+			showFriendlist: false,
+			mouseOverId: ''
 		}
 	}
     
@@ -46,7 +47,7 @@ class CreateRoomModal extends React.Component{
 			this.setState({ potentialFriendlist: this.props.user.userData.friends })
 		} else {
 			var filtered = this.props.user.userData.friends.filter((user) => {
-				return user.fullName.indexOf(e.target.value) > -1
+				return user.fullName.toLowerCase().indexOf(e.target.value.toLowerCase()) > -1
 			})
 			this.setState({ potentialFriendlist: filtered })
 		}
@@ -62,6 +63,20 @@ class CreateRoomModal extends React.Component{
 		this.setState({
 			showFriendlist: true
 		})
+	}
+
+	handleMouseEnter(friendId) {
+		this.setState({mouseOverId: friendId})
+	}
+
+	handleMouseLeave() {
+		this.setState({mouseOverId: ''})
+	}
+
+	handleOnUnselect(friend) {
+		var updatedList = this.state.friendsToAdd
+		updatedList = updatedList.filter(obj => obj._id !== friend._id)
+		this.setState({ friendsToAdd: updatedList})
 	}
     
 	render() {
@@ -107,8 +122,13 @@ class CreateRoomModal extends React.Component{
 							<div className="friends-to-add">
 								{this.state.friendsToAdd.map((friend) => {
 									return (
-										<div key={friend._id} className="friend-to-add">
-											{friend.fullName}
+										<div
+											key={friend._id}
+											className="btn-default friend-to-add"
+											onMouseEnter={() => this.handleMouseEnter(friend._id)}
+											onMouseLeave={() => this.handleMouseLeave()}
+											onClick={() => this.handleOnUnselect(friend)}>
+											{this.state.mouseOverId === friend._id ? 'Delete' : friend.fullName}
 										</div>
 									)
 								})}
