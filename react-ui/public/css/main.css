@@ -1,16 +1,9 @@
 body, html {
-    /* height: 100%; */
     padding-top: 5px;
     overflow-x: hidden;
+    width: 100vw;
     background-color: black !important;
-    /* background-image:
-      linear-gradient(
-        rgba(0, 0, 0, 0.7),
-        rgba(0, 0, 0, 0.7)
-      ), */
-      /* url("../img/background.jpg"); */
-    /* background-repeat: no-repeat;
-    background-attachment: fixed; */
+    overflow-y: auto;
 }
 
 .container {
@@ -67,34 +60,93 @@ a.navbar-brand:visited{
   color: white;
 }
 
-#create-room-button a button{
-  color: white;
-  outline: none !important;
-  box-shadow: none;
+#create-room-button{
+  margin: 33px auto;
+  width: fit-content;
 }
 
-#create-room-button button:hover {
-  color: #feda6a;
-}
-
-#create-room-button a:hover {
-  background-color: transparent !important;
-}
-
-#create-room-button a:visited {
-  background-color: transparent !important;
+#create-room-class {
+  display: none;
+  z-index: 1;
+  position: fixed !important;
+  top: 0;
+  background-color: rgba(0,0,0,0.8);
+  height: 100vh;
 }
 
 #create-room-modal {
+  margin: 25vh auto;
+  max-width: 400px;
+}
+
+#create-room-modal-header {
+  font-size: 26px;
+}
+
+#create-room-input {
+  margin-top: 11px;
+  width: 97%;
+}
+
+#create-room-input input{
+  margin: 0 0 12px 8px;
+}
+
+#create-room-input h5 {
+  margin: 0px 0px -14px 0px;
+}
+
+.friend-search-result {
+  width: 365px;
+  background-color: whitesmoke;
+  z-index: 2;
   position: absolute;
-  z-index: 3;
-  background-color: white;
+}
+
+.friend-search-result .list-group{
+  margin: 0 !important;
+  color: black;
+}
+
+#friend-list-item {
+  color: black !important;
+}
+
+#friend-list-item:hover {
+  background-color: lightblue !important;
+  cursor: pointer;
+}
+
+#create-room-btn {
+  margin: auto;
+  margin: 10px 15px 0;
+  float: right;
+}
+
+.friends-to-add {
+  display: flex;
+}
+
+.friend-to-add {
+  margin: 0 2px;
+  padding: 3px 8px;
+  border-radius: 7px;
+  background-color: lightblue;
 }
 
 .mainfeed-body {
   /* background-color: brown; */
   margin-top: 38px;
   opacity: 1;
+}
+
+#no-friend-class {
+  display: block;
+  z-index: 1;
+  position: fixed !important;
+  top: 0;
+  background-color: rgba(0,0,0,0.8);
+  height: 100vh;
 }
 
 #no-friend-modal {
@@ -200,6 +252,20 @@ a.navbar-brand:visited{
 .login-link {
   display:inline-block;
   margin:0 auto;
+  /* display: block; */
+  width: 115px;
+  height: 30px;
+  background: rgba(167, 170, 166, 0.733);
+  padding: 6px;
+  text-align: center;
+  border-radius: 5px;
+  color: white;
+  /* font-weight: bold; */
+}
+
+#logout-button {
+  color: white;
+  margin: 17px auto;
 }
 
 #main .jumbotron{
@@ -217,6 +283,84 @@ a.navbar-brand:visited{
   border: 0 none !important;
   box-shadow: none !important;
   border-radius: 0px !important;
+}
+
+.vertical-center {
+  display: flex;
+  align-items: center;
+}
+
+.feedItemPlaylist {
+  display: -webkit-box;
+  flex-direction: row;
+  overflow-x: auto;
+  /* background-color: #00c07f; */
+  /* width: 80%; */
+  /* height: 50px; */
+}
+
+.feedItemPlaylist::-webkit-scrollbar {
+  display: none;
+}
+
+.feedItemSong {
+  width: 183px;
+  height: 183px;
+  background-size: cover;
+}
+
+.feedItemSong h2 {
+  margin: 20px;
+}
+
+.scroll-left {
+  left: -50px;
+  width:89px;
+  height: 100%;
+  /* z-index: 3; */
+  position: absolute;
+}
+
+.scroll-right {
+  right: 0;
+  width: 89px;
+  height: 100%;
+  /* z-index: 3; */
+  position: absolute;
+}
+
+.scroll-button{
+  width: 40px;
+  border-radius: 20px;
+  height: 40px;
+  width: 40px;
+  background-color: white;
+  border: none;
+  margin-top: 135px;
+  margin-left: 46px;
+}
+
+.scroll-button:focus {
+  border: none;
+}
+
+#like-button {
+  margin-top: 0;
+  background-color: transparent;
+  border-color: transparent;
+  padding: 0px;
+  color: #bdbdbd;
+  height: 20px;
+  width: 20px;
+}
+
+#like-button:hover {
+  background-color: transparent;
+  border-color: transparent;
+}
+
+#like-button:hover .glyphicon-heart-empty{
+  color: #f06292;
 }
 
 .thumbnail .btn {
@@ -273,13 +417,13 @@ a.navbar-brand:visited{
 }
 
 .btn-default:active:focus {
-  background-color: transparent !important;
+  /* background-color: transparent !important; */
   outline: none !important;
   border-color: transparent !important;
 }
 
 .btn-default:focus {
-  background-color: transparent !important;
+  /* background-color: transparent !important; */
   outline: none !important;
   border-color: transparent !important;
 }
@@ -308,7 +452,7 @@ a.navbar-brand:visited{
   color: #f06292 !important;
 }
 
-.group-content {
+/* .group-content {
   margin-left: -32px;
   width: 130%;
   background-color: transparent !important;
@@ -316,10 +460,19 @@ a.navbar-brand:visited{
 
 .group-content li{
   padding: 5px;
+} */
+
+.group-header a {
+  color: white;
 }
 
+.group-header a:hover {
+  color: white;
+  text-decoration: none
+}
+
+
 .panel-default {
-  /* background-color: transparent !important; */
   border-color: transparent !important;
 }
 
@@ -342,12 +495,7 @@ a.navbar-brand:visited{
 }
 
 .side-bar {
-  border-left: 1px solid #bdbdbd;
-  /* margin-left: -50px; */
-  border-color: #616161;
-
-  height: 500px;
-  /* background-color: bisque; */
+  padding: 0 !important;
 }
 
 .side-bar a{
@@ -356,18 +504,25 @@ a.navbar-brand:visited{
 
 .side-bar .panel {
   background-color: transparent !important;
-  margin-left: 4px;
+  margin: 0 0px 30px 0px;
+  width: 100%;
 }
 
 .side-bar .panel-heading {
-  margin-left: -20px;
+  padding: 20px 0 5px;
   border-bottom: 1px solid #616161;
-  width: 350px;
+  width: 100%;
   color: #bdbdbd !important;
 }
 
 .side-bar .panel-title {
   font-size: 15px;
+}
+
+.side-object-thumb {
+  width: 80px;
+  height: 80px;
+  background-size: cover;
 }
 
 .media img {
@@ -564,7 +719,7 @@ a.navbar-brand:visited{
 }
 
 .playing-container {
-  height: 660px;
+  height: 98vh;
   position: relative;
 }
 
@@ -581,7 +736,7 @@ a.navbar-brand:visited{
   opacity: 0.9;
   color: white;
   overflow: hidden;
-  width: 70%;
+  width: 102vh;
   height: 0;
   transition: .5s ease;
   margin: 0 auto;
@@ -603,14 +758,13 @@ a.navbar-brand:visited{
 }
 
 .song-queue {
-  padding: 124px 29px 0px 29px;
-  margin: 3px -200px -1150px !important;
-  width: 202px;
-  height: 1356px;
-  overflow-x: hidden;
-  overflow-y: auto;
-  transform: rotate(-90deg);
-  transform-origin: right top;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 35px;
+  margin-bottom: 5px;
+  display: -webkit-box;
+  flex-direction: row;
+  overflow-x: auto;
 }
 
 #btn-container {
@@ -640,20 +794,12 @@ a.navbar-brand:visited{
 }
 
 .songdisplay {
-  transform: rotate(90deg);
-  transform-origin: right top;
-  display: inline-block !important;
-  overflow: hidden;
   width: 120px;
   height: 120px;
-  margin: 10px auto;
+  background-size: cover;
+  margin: 10px 30px 0 0;
   z-index: 1 !important;
   opacity: 0.5;
-}
-
-.group_playlist {
-  /* margin-top: 55px; */
-  /* background-color: #00C851 */
 }
 
 .mainfeedsongdisplay {
@@ -662,19 +808,19 @@ a.navbar-brand:visited{
 }
 
 .song-queue::-webkit-scrollbar {
-  display: none;
+  /* display: none; */
 }
 
 ::-webkit-scrollbar {
-  width: 12px;
+  width: 15px;
 }
 
 ::-webkit-scrollbar-track {
-  box-shadow: inset 0 0 6px DimGray;
-  border-radius: 10px;
+  box-shadow: inset 0 0 6px black;
 }
 
 ::-webkit-scrollbar-thumb {
   border-radius: 10px;
-  box-shadow: inset 10px 0 6px Gray;
+  box-shadow: inset 10px 0 22px rgba(211, 211, 211, 0.795);
+  border: 5px solid rgba(0, 0, 0, 0)
 }

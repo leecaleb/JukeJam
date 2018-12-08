@@ -5,8 +5,9 @@ import server_url from '../../config'
 export default class PublicHomePage extends React.Component {
 	render() {
 		const login_url = process.env.NODE_ENV === 'development' ?
-			"http://localhost:5000/auth/spotify"
-			: server_url + '/auth/spotify'
+			'http://localhost:5000/auth/spotify'
+			// server_url + '/auth/spotify'
+			: 'https://jukejam-api.hirecaleblee.me' + '/auth/spotify'
 		return (
 			<div>
 				<div className="container-fluid">
@@ -23,9 +24,7 @@ export default class PublicHomePage extends React.Component {
 										<img className="login-logo" />
 									</div>
 									<div style={{ textAlign: 'center', paddingTop: 30 }}>
-										<button className="btn btn-default" type="button" style={{ textAlign: 'center' }} >
-											<a className="login-link" href={login_url}>Spotify Login</a>
-										</button>
+										<a className="login-link" href={login_url}>Spotify Login</a>
 									</div>
 								</div>
 							</div>

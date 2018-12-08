@@ -1,5 +1,5 @@
 import React from 'react'
-import {getPlaylist, getGroupData, getYoutubePlaylist} from '../../../server'
+import {getPlaylist} from '../../../server'
 import MainFeedSongDisplay from './mainfeedsongdisplay'
 
 export default class FeedItemPlaylist extends React.Component {
@@ -14,24 +14,8 @@ export default class FeedItemPlaylist extends React.Component {
 	}
 
 	componentDidMount() {
-		getGroupData(this.props.feedItemId, (groupinfo) => {
-			// console.log(groupinfo.songs);
-			this.setState({
-				songs: groupinfo.songs
-			},
-			getPlaylist(this.props.feedItemId, (songlist) => {
-				// console.log("songlist: " + songlist);
-				this.setState({
-					spotify: songlist
-				},
-				getYoutubePlaylist(this.props.feedItemId, (songlist) => {
-					// console.log("youtube songlist: " + songlist);
-					this.setState({
-						youtube: songlist
-					},
-					this.updatePlaylist)
-				}))
-			}))
+		getPlaylist(this.props.feedItemId, (playlist) => {
+			this.setState({ playlist: playlist })
 		})
 	}
 

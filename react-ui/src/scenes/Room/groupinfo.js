@@ -78,7 +78,7 @@ class GroupInfo extends React.Component {
 	}
 
 	handleSendContributionRequest() {
-		addToRoom('000000000000000000000004', this.props.user.userData._id, this.props.groupId, (user) => {
+		addToRoom('5bee4e04f9a4a9332eddeb63', this.props.user.userData._id, this.props.groupId, (user) => {
 			user.newUser = false
 			this.props.loadUserData(user)
 			window.location.reload()

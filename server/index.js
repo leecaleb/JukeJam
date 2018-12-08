@@ -1,5 +1,5 @@
 const express = require('express')
-const path = require('path')
+// const path = require('path')
 const app = express()
 const bodyParser = require('body-parser')
 // var querystring = require('querystring')
@@ -11,15 +11,15 @@ require('dotenv').config()
 require('./socket')
 
 var env = process.env.NODE_ENV || 'development'
-const SERVER_HOST = (env === 'development') ? 'http://localhost:5000' : process.env.SERVER_HOST
-const WEB_URL = (env === 'development') ? 'http://localhost:3000' : process.env.WEB_URL
+const SERVER_HOST = env === 'development' ? 'http://localhost:5000' : process.env.SERVER_HOST
+const WEB_URL = env === 'development' ? 'http://localhost:3000' : process.env.WEB_URL
+const DOMAIN = env === 'development' ? 'localhost' : process.env.DOMAIN
 
 var MongoClient = require('mongodb').MongoClient
 var ObjectID = require('mongodb').ObjectID
 var DBurl = process.env.MONGO_URL
 
 MongoClient.connect(DBurl, function (err, db) {
-
 	if (err) {
 		console.log('error occured when connecting to the database: ', err)
 	}
@@ -27,12 +27,10 @@ MongoClient.connect(DBurl, function (err, db) {
 	app.use(cookieParser())
 
 	app.use((req, res, next) => {
-		// console.log(req.headers)
-		// if (req.headers.referer.endsWith('localhost:3000/')) {
 		res.setHeader('Access-Control-Allow-Origin', WEB_URL)
+		res.setHeader('Access-Control-Allow-Credentials', true)
 		res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Authorization')
 		res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE')
-		// }
 		next()
 	})
 
@@ -45,6 +43,8 @@ MongoClient.connect(DBurl, function (err, db) {
 	app.listen(PORT, function () {
 		console.log(`Listening on port ${PORT}`)
 	})
+
+	
 
 	const client_id = process.env.CLIENT_ID
 	const client_secret = process.env.CLIENT_SECRET
@@ -82,6 +82,10 @@ MongoClient.connect(DBurl, function (err, db) {
 	app.use(bodyParser.text())
 	app.use(bodyParser.json())
 
+	app.get('/health', (req, res) => {
+		res.status(200).send('healthy!')
+	})
+
 	app.get('/auth/spotify', passport.authenticate(
 		'spotify',
 		{ scope: ['user-read-private', 'user-read-email'], showDialog: true }
@@ -95,16 +99,17 @@ MongoClient.connect(DBurl, function (err, db) {
 		spotifyApi.authorizationCodeGrant(code)
 			.then(function (data) {
 				// Set the access token on the API object to use it in later calls
-				spotifyApi.setAccessToken(data.body['access_token'])
-				spotifyApi.setRefreshToken(data.body['refresh_token'])
-				// res.cookie('refresh_token', spotifyApi.refresh)
+				const access_token = data.body['access_token']
+				const refresh_token = data.body['refresh_token']
+				spotifyApi.setAccessToken(access_token)
+				spotifyApi.setRefreshToken(refresh_token)
 				spotifyApi.getMe()
 					.then(function (data) {
 						db.collection('users').findOne({
 							fullName: data.body.id
 						}, (err, userData) => {
 							if (err) {
-								console.log(err)
+								if (err) throw err
 							} else if (userData === null) {
 								var new_id = new ObjectID()
 								db.collection('users').insertOne({
@@ -118,15 +123,19 @@ MongoClient.connect(DBurl, function (err, db) {
 									friends: []
 								}, (err, new_user) => {
 									if (err) {
-										console.log(err)
+										if (err) throw err
 									} else {
-										res.cookie('token', new Buffer(JSON.stringify({ id: new_user.insertedId })).toString('base64'))
+										res.cookie('token', new Buffer(JSON.stringify({ id: new_user.insertedId })).toString('base64'), { domain: DOMAIN, overwrite: true})
+										res.cookie('spotify-access-token', access_token, { domain: DOMAIN, overwrite: true })
+										res.cookie('spotify-refresh-token', refresh_token, { domain: DOMAIN, verwrite: true })
 										res.redirect(WEB_URL + '/user/' + new_user.insertedId)
 									}
 								})
 							} else {
 								var token = new Buffer(JSON.stringify({ id: userData._id })).toString('base64')
-								res.cookie('token', token)
+								res.cookie('token', token, { domain: DOMAIN, overwrite: true  })
+								res.cookie('spotify-access-token', access_token, { domain: DOMAIN, overwrite: true  })
+								res.cookie('spotify-refresh-token', refresh_token, { domain: DOMAIN, overwrite: true  })
 								res.redirect(WEB_URL + '/user/' + userData._id)
 							}
 						})
@@ -137,6 +146,13 @@ MongoClient.connect(DBurl, function (err, db) {
 				console.log('Something went wrong!', err)
 				res.status(401).end()
 			})
+	})
+
+	app.get('/logout', (req, res) => {
+		res.cookie('token', '', { domain: DOMAIN })
+		res.cookie('spotify-access-token', '', { domain: DOMAIN })
+		res.cookie('spotify-refresh-token', '', { domain: DOMAIN })
+		res.send({})
 	})
 
 	function resolveUserObjects(userList, callback) {
@@ -172,7 +188,13 @@ MongoClient.connect(DBurl, function (err, db) {
 				} else if (userData === null) {
 					res.status(400).send('User with id: ' + user_id + 'does not exist')
 				} else {
-					res.status(200).send(userData)
+					resolveUserObjects(userData.friends, function (err, userMap) {
+						if (err) {
+							return res.status(400).send(err)
+						}
+						userData.friends = userData.friends.map((userId) => userMap[userId])
+						res.status(200).send(userData)
+					})
 				}
 			})
 		} else {
@@ -275,18 +297,21 @@ MongoClient.connect(DBurl, function (err, db) {
 		}
 	})
 
-	//TODO: createRoom
-	app.post('/user/:userid/feeditem', (req, res) => {
+	// createRoom
+	app.post('/user/:userid/feeditem/:room_name', (req, res) => {
 		const user_id = req.params.userid
 		const from_user = getUserIdFromToken(req.get('Authorization'))
-		const room_name = req.body.trim()
+		const room_name = req.params.room_name.trim()
+		var friendsToAdd = req.body.map((friend) => friend._id)
+		friendsToAdd.push(user_id)
 		if (user_id === from_user) { // add to user's group + each friend's feed contents
-			db.feedItems.insert({ // look into inserOne and its write response op
+			db.collection('feedItems').insert({ // look into inserOne and its write response op
 				groupName: room_name,
 				author: new ObjectID(user_id),
 				postDate: new Date(),
 				location: '',
-				groupUsers: [new ObjectID(user_id)],
+				thumbnail: 'https://images.unsplash.com/photo-1494232410401-ad00d5433cfa?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=beb0f979ed2a7da134fb95a2ae6290c3&auto=format&fit=crop&w=1500&q=80',
+				groupUsers: friendsToAdd.map((user) => new ObjectID(user)),
 				songs: {
 					totalSongs: 0,
 					selected_id: 0,
@@ -296,29 +321,30 @@ MongoClient.connect(DBurl, function (err, db) {
 				likerList: []
 			}, (err, writeResult) => {
 				if (err) throw err
-				console.log(writeResult._id)
+				const new_group_id = writeResult.ops[0]._id
 				db.collection('users').findOneAndUpdate({
 					_id: new ObjectID(user_id)
 				}, {
-					$addToSet: { groups: writeResult._id }
+					$addToSet: { groups: new_group_id }
+				}, {
+					returnOriginal: false
 				}, (err, userData) => {
 					if (err) throw err
-					console.log(userData.friends)
 					// add new added feeditem id to each friend's feed and creator's feed contents
-					db.feeds.update({
+					db.collection('feeds').update({
 						_id: new ObjectID(user_id)
 					}, {
-						$addToSet: { contents: writeResult._id }
+						$addToSet: { contents: new_group_id }
 					})
 
-					userData.friends.forEach((friend_id) => {
-						db.feeds.update({
+					userData.value.friends.forEach((friend_id) => {
+						db.collection('feeds').update({
 							_id: friend_id
 						}, {
-							$addToSet: { contents: writeResult._id}
+							$addToSet: { contents: new_group_id}
 						})
 					})
-					res.status(200).send(writeResult._id)
+					res.status(200).send(new_group_id)
 				})
 			})
 		}
@@ -534,6 +560,36 @@ MongoClient.connect(DBurl, function (err, db) {
 		}
 	})
 
+	//updateFeedItemThumbnail
+	function updateFeedItemThumbnail(songId, feedItemId) {
+		getTrackThumbnail(songId, (err, thumbnail) => {
+			if (err) throw err
+			db.collection('feedItems').findOneAndUpdate({
+				_id: feedItemId
+			}, {
+				$set: {
+					thumbnail: thumbnail
+				}
+			}, (err, feedItem) => {
+				if(err) throw err
+			})
+		})
+	}
+
+	function getTrackThumbnail(songId, cb) {
+		spotifyApi.getTracks([songId])
+			.then(function (data) {
+				cb(null, data.body.tracks[0].album.images[0].url)
+			}, function (err) {
+				spotifyApi.refreshAccessToken().then((data) => {
+					spotifyApi.setAccessToken(data.body['access_token'])
+				}, (err) => {
+					cb('could not refresh access token: ' + err, null)
+				})
+			})
+	}
+
+
 	//searchSong - spotify
 	app.post('/search', function (req, res) {
 		if (typeof (req.body) === 'string') {
@@ -582,13 +638,16 @@ MongoClient.connect(DBurl, function (err, db) {
 		}
 	})
 
-	// addSong:Spotify returns a list of track objects
+	// Spotify returns a list of track objects
 	function addSong(feedItemId, songId, cb) {
 		db.collection('feedItems').findOne({
 			_id: feedItemId
 		}, (err, feedItemData) => {
 			if (err) throw (err)
 			else {
+				if (feedItemData.songs.totalSongs === 0) {
+					updateFeedItemThumbnail(songId, feedItemId)
+				}
 				db.collection('feedItems').updateOne({
 					_id: feedItemId
 				}, {
@@ -679,8 +738,7 @@ MongoClient.connect(DBurl, function (err, db) {
 					.then(function (data) {
 						res.send(data.body)
 					}, function (err) {
-						console.error(err)
-						res.status(400).end()
+						res.status(400).send(err)
 					})
 			}
 		})
@@ -705,19 +763,128 @@ MongoClient.connect(DBurl, function (err, db) {
 						res.send(data.body.tracks)
 					}, function (err) {
 						spotifyApi.refreshAccessToken().then((data) => {
-							console.log('access token refreshed!')
 							spotifyApi.setAccessToken(data.body['access_token'])
 							spotifyApi.getTracks(spotifyList)
 								.then((data) => {
 									res.send(data.body)
 								}, (err) => {
-									console.error(err)
-									res.status(400).end()
+									res.status(400).send(err)
 								})
 						}, (err) => {
 							console.log('could not refresh access token', err)
 						})
 					})
+			}
+		})
+	})
+
+	function getSpotifyTracks(id_list, cb) {
+		if (id_list.length === 0) {
+			cb(null, [])
+		} else {
+			spotifyApi.getTracks(id_list)
+				.then((data) => {
+					cb(null, data.body.tracks)
+				}, (err) => {
+					if (err.statusCode === 401) {
+						spotifyApi.refreshAccessToken().then((data) => {
+							spotifyApi.setAccessToken(data.body['access_token'])
+							spotifyApi.getTracks(id_list)
+								.then((data) => {
+									cb(null, data.body.tracks)
+								}, (err) => {
+									cb(err, null)
+								})
+						}, (err) => {
+							cb(err + ': please log in with your spotify acount again', null)
+						})
+					} else {
+						cb(err, null)
+					}
+				})
+		}
+	}
+
+	function getYoutubeTracks(id_list, cb) {
+		var service = google.youtube('v3')
+		service.videos.list({
+			id: id_list,
+			part: 'snippet',
+			key: process.env.YOUTUBE_API_KEY
+		}, (err, data) => {
+			if (err) {
+				cb('Youtube API returned an error: ' + err, null)
+			} 
+			cb(null, data.items)
+		})
+	}
+
+	function getTracks(spotifyList, youtubeList, cb) {
+		var playlist = []
+		var spotify_id_list = []
+		for (var i = 0; i < spotifyList.length; ++i) {
+			spotify_id_list.push(spotifyList[i]._id)
+		}
+
+		var youtube_id_list= ''
+		for (var j = 0; j < youtubeList.length; ++j) {
+			youtube_id_list += youtubeList[j]._id + ', '
+		}
+
+		getSpotifyTracks(spotify_id_list, (err, spotify_data) => {
+			if (err) {
+				cb('err getting spotify tracks: ' + err, null)
+			} else {
+				getYoutubeTracks(youtube_id_list, (err, youtube_data) => {
+					if (err) {
+						cb('err getting youtube tracks' + err, null)
+					} else {
+						var songid = 0
+						for(var i = 0; i < spotifyList.length; ++i) {
+							for(var j = songid; j < spotify_data.length; ++j) {
+								if(spotifyList[i]._id === spotify_data[j].id) {
+									playlist[spotifyList[i].index] = spotify_data[j]
+									songid++
+									break
+								}
+							}
+						}
+						songid = 0
+						for(i = 0; i < youtubeList.length; ++i) {
+							for(j = songid; j < youtube_data.length; ++j) {
+								if(youtubeList[i]._id === youtube_data[j].id) {
+									playlist[youtubeList[i].index] = youtube_data[j]
+									songid++
+									break
+								}
+							}
+						}
+						cb(null, playlist)
+					}
+				})
+			}
+		})
+	}
+
+	app.get('/feeditem/:feeditemid/playlist', (req, res) => {
+		if (spotifyApi.getAccessToken() === undefined) {
+			spotifyApi.setAccessToken(req.cookies['spotify-access-token'])
+			spotifyApi.setRefreshToken(req.cookies['spotify-refresh-token'])
+		}
+		const feeditem_id = req.params.feeditemid
+		getFeedItem(new ObjectID(feeditem_id), (err, feeditem) => {
+			if (err) {
+				res.status(500).send('Database error: ' + err)
+			} else if (feeditem === null) {
+				res.status(400).send('Could not look up feeditem ' + feeditem_id)
+			} else {
+				getTracks(feeditem.songs.spotify, feeditem.songs.youtube, (err, playlist) => {
+					if (err) {
+						res.status(400).send(err)
+					} else {
+						res.status(200).send(playlist)
+					}
+				})
 			}
 		})
 	})
@@ -736,18 +903,9 @@ MongoClient.connect(DBurl, function (err, db) {
 				for (var i = 0; i < youtube.length; ++i) {
 					youtubeList += youtube[i]._id + ', '
 				}
-
-				var service = google.youtube('v3')
-				service.videos.list({
-					id: youtubeList,
-					part: 'snippet',
-					key: process.env.YOUTUBE_API_KEY
-				}, function (err, data) {
-					if (err) {
-						console.log('The API returned an error: ' + err)
-						return
-					}
-					res.send(data.items)
+				getYoutubeTracks(youtubeList, (err, data) => {
+					if (err) res.status(400).send(err)
+					res.status(200).send(data)
 				})
 			}
 		})

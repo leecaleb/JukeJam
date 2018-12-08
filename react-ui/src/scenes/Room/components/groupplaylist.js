@@ -27,22 +27,20 @@ class GroupPlaylist extends React.Component {
 			this.handleScroll(e)
 		})
 		this.props.onRef(this)
-		getPlaylist(this.props.groupId, (songlist) => {
-			this.setState({
-				spotify: songlist
-			},
-			getYoutubePlaylist(this.props.groupId, (songlist) => {
-
-				this.setState({
-					youtube: songlist
-				},
-				this.updatePlaylist)
-			}))
-		})
+		this.updatePlaylist()
 	}
 
 	handleScroll(e) {
-		window.scrollBy(100, 0)
+		e.preventDefault
+		var ele = document.getElementById('song-queue')
+
+		if (e.deltaY < 0) { //scrolling up
+			ele.scrollBy(-8, 0)
+		}
+
+		if (e.deltaY > 0) { //scrolling down
+			ele.scrollBy(8, 0)
+		}
 	}
 
 	// action: 1 if song added and 0 if song removed
@@ -77,32 +75,12 @@ class GroupPlaylist extends React.Component {
 	}
 
 	updatePlaylist() {
-		var playlistArr = []
-		var spotify = this.props.groupInfo.songs.spotify
-		var youtube = this.props.groupInfo.songs.youtube
-		var songid = 0
-		for(var i = 0; i < spotify.length; ++i) {
-			for(var j = songid; j < this.state.spotify.length; ++j) {
-				if(spotify[i]._id === this.state.spotify[j].id) {
-					playlistArr[spotify[i].index] = this.state.spotify[j]
-					songid++
-					break
-				}
+		getPlaylist(this.props.groupId, (playlist) => {
+			var selected_id = this.props.group.selected_id
+			if (playlist.length) {
+				this.props.loadPlaylist([playlist[selected_id]], playlist.slice(selected_id+1, playlist.length))
 			}
-		}
-		songid = 0
-		for(i = 0; i < youtube.length; ++i) {
-			for(j = songid; j < this.state.youtube.length; ++j) {
-				if(youtube[i]._id === this.state.youtube[j].id) {
-					playlistArr[youtube[i].index] = this.state.youtube[j]
-					songid++
-					break
-				}
-			}
-		}
-		var selected_id = this.props.group.selected_id
-		this.props.loadPlaylist([playlistArr[selected_id]], playlistArr.slice(selected_id+1, playlistArr.length))
-
+		})
 	}
 
 	handlePlay() {
@@ -151,24 +129,22 @@ class GroupPlaylist extends React.Component {
 		}
 		return (
 			<div>
-				<div className="col-md-12 group_playlist">
-					<div className="row player">
-						{cur_song.map((song) => {
-							return (
-								<PlayingSongDisplay
-									key={0}
-									data={song}
-									songId={song.id}
-									groupId={this.props.groupId}
-									playNextSong={this.playNextSong.bind(this)}
-									startPlay={this.state.startPlay}
-									onRef={ref => this.playsong = ref} />
-							)
-						})}
-					</div>
-					<div className="row song-queue" id="song-queue">
-						{this.props.group.playlist.map(this.buildChildren.bind(this))}
-					</div>
+				{cur_song.map((song) => {
+					return (
+						<PlayingSongDisplay
+							key={0}
+							data={song}
+							songId={song.id}
+							groupId={this.props.groupId}
+							playNextSong={this.playNextSong.bind(this)}
+							startPlay={this.state.startPlay}
+							onRef={ref => this.playsong = ref} />
+					)
+				})}
+				<div className="container-fluid song-queue" id="song-queue"
+					onMouseOver={() => document.documentElement.style.overflowY = 'hidden'}
+					onMouseOut={() => document.documentElement.style.overflowY = 'auto'}>
+					{this.props.group.playlist.map(this.buildChildren.bind(this))}
 				</div>
 			</div>
 

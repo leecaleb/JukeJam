@@ -1,35 +1,142 @@
 import React from 'react'
-import {createRoom} from '../../../server'
+import { createRoom } from '../../../server'
+import { addRoomToUserGroups } from '../../../actions/index'
+import { bindActionCreators } from 'redux'
+import { connect } from 'react-redux'
 
-export default class CreateRoomModal extends React.Component{
+class CreateRoomModal extends React.Component{
 	constructor(props) {
 		super(props)
 		this.state = {
-			roomName: ''
+			roomName: '',
+			potentialFriendlist: this.props.user.userData.friends,
+			friendsToAdd: [],
+			showFriendlist: false
 		}
 	}
     
 	handleOnCreate() {
-		createRoom(this.props.user_id, this.state.roomName, (room_id) => {
-			document.getElementById('mainfeed-body').style.opacity = 1
-			// redirect page to newly created room
-		})
+		if (this.state.roomName === '') {
+			document.getElementById('room-name-input').style.borderColor = 'red'
+			document.getElementById('room-name-input').placeholder = 'Please name your new room'
+		} else {
+			createRoom(this.props.user_id, this.state.roomName, this.state.friendsToAdd, (room_id) => {
+				document.getElementById('create-room-class').style.display = 'none'
+				// redirect page to newly created room
+				this.props.addRoomToUserGroups(room_id)
+				this.props.handleUpdateFeed()
+				window.location.href = process.env.NODE_ENV === 'development' ?
+					'http://localhost:3000/group/' + room_id : 'https://jukejam.hirecaleblee.me/group/' + room_id
+			})
+		}
+	}
+
+	handleCancelCreateRoom() {
+		document.getElementById('create-room-class').style.display = 'none'
 	}
     
-	handleTextChange(e) {
+	handleNameTyped(e) {
 		e.preventDefault()
-		this.setState({roomName: e.target.value})
+		this.setState({ roomName: e.target.value })
+	}
+
+	handleFriendSearch(e) {
+		e.preventDefault()
+		if (e.target.value === '') {
+			this.setState({ potentialFriendlist: this.props.user.userData.friends })
+		} else {
+			var filtered = this.props.user.userData.friends.filter((user) => {
+				return user.fullName.indexOf(e.target.value) > -1
+			})
+			this.setState({ potentialFriendlist: filtered })
+		}
+	}
+
+	handleAddFriend(friend) {
+		var updatedList = this.state.friendsToAdd
+		updatedList.push(friend)
+		this.setState({ friendsToAdd: updatedList})
+	}
+
+	onFocus() {
+		this.setState({
+			showFriendlist: true
+		})
 	}
     
 	render() {
 		return (
 			<div>
-				<div class="panel panel-default" id="create-room-modal">
-					<div class="panel-body">
-                        Basic panel example
+				<div className="container-fluid col-xs-12" id="create-room-class">
+					<div className="panel panel-default" id="create-room-modal">
+						<div className="panel-body">
+							<b id="create-room-modal-header">Create a new room and add your friends</b>
+							<div className="input-group" id="create-room-input">
+								<h5><b>Name</b></h5>
+								<br />
+								<input
+									type="text"
+									className="form-control"
+									id="room-name-input"
+									placeholder="Room Name"
+									aria-describedby="basic-addon1"
+									onChange={(e) => this.handleNameTyped(e)}/>
+								<br/><h5><b>Find and add friends</b></h5>
+								<br />
+								<input
+									type="text"
+									className="form-control"
+									placeholder="Start typing"
+									aria-describedby="basic-addon1"
+									onFocus={() => this.setState({ showFriendlist: true })}
+									onBlur={() => this.setState({showFriendlist: false })}
+									onKeyUp={(e) => this.handleFriendSearch(e)}/>
+							</div>
+							{this.state.showFriendlist ?
+								<div className="friend-search-result">
+									<ul className="list-group">
+										{this.state.potentialFriendlist.map((friend) => {
+											return (
+												<li key={friend._id} className="list-group-item" id="friend-list-item" onMouseDown={() => this.handleAddFriend(friend)}>
+													{friend.fullName}
+												</li>
+											)
+										})}
+									</ul>
+								</div> : null}
+							<div className="friends-to-add">
+								{this.state.friendsToAdd.map((friend) => {
+									return (
+										<div key={friend._id} className="friend-to-add">
+											{friend.fullName}
+										</div>
+									)
+								})}
+							</div>
+							<button className="btn btn-default" id="create-room-btn" onClick={() => this.handleCancelCreateRoom()}>
+								Cancel
+							</button>
+							<button className="btn btn-default" id="create-room-btn" onClick={() => this.handleOnCreate()}>
+								Create Room
+							</button>
+						</div>
 					</div>
 				</div>
 			</div>
 		)
 	}
 }
+
+const mapStateToProps = (state) => {
+	return {
+		user: state.user
+	}
+}
+
+const mapDispatchToProps = (dispatch) => {
+	return {
+		...bindActionCreators({addRoomToUserGroups}, dispatch)
+	}
+}
+
+export default connect(mapStateToProps, mapDispatchToProps) (CreateRoomModal)

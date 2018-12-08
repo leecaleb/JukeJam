@@ -1,7 +1,9 @@
 import { loadUserList, newSongAdded, nextSong, clearPlaylist } from '../actions'
 
 export const setupSocket = (dispatch, url, groupPlaylistID, userData) => {
-	const socket = new WebSocket('ws://localhost:8989')
+	// const socket = new WebSocket('ws://localhost:8989')
+	const socket = new WebSocket('wss://jukejam-api.hirecaleblee.me:8989')
+
 	socket.onopen = () => {
 		socket.send(JSON.stringify({
 			type: 'ADD_USER_SUCCESS',

@@ -8,120 +8,138 @@ var initialData = {
 	'users': {
 		// This user has id "1".
 		'1': {
-			'_id': new ObjectID('000000000000000000000001'),
-			'fullName': 'q3vtjiig6bwgyicjety7m564',
+			'_id': new ObjectID('5bee4e5a3f7e8333c9496164'),
+			'fullName': 'Mark',
 			'img': 'img/girf.jpg',
-			'feed': new ObjectID('000000000000000000000001'),
-			'groups': [new ObjectID('000000000000000000000002'), new ObjectID('000000000000000000000001')],
-			'likedPlaylist': [new ObjectID('000000000000000000000001')],
+			'feed': new ObjectID('5bee4e5a3f7e8333c9496164'),
+			'groups': [new ObjectID('5bee4e7bc3c45933fb98de42'), new ObjectID('5bee4e5a3f7e8333c9496164')],
+			'likedPlaylist': [new ObjectID('5bee4e5a3f7e8333c9496164')],
 			'friends': []
 		},
 		'2': {
-			'_id': new ObjectID('000000000000000000000002'),
-			'fullName': 'Someone Else',
-			'feed': new ObjectID('000000000000000000000001'),
+			'_id': new ObjectID('5bee4e7bc3c45933fb98de42'),
+			'fullName': 'Sarah',
+			'feed': new ObjectID('5bee4e5a3f7e8333c9496164'),
 			'groups': [],
-			'likedPlaylist': [new ObjectID('000000000000000000000001'), new ObjectID('000000000000000000000002')],
-			'friends': [new ObjectID('000000000000000000000004')]
+			'likedPlaylist': [new ObjectID('5bee4e5a3f7e8333c9496164'), new ObjectID('5bee4e7bc3c45933fb98de42')],
+			'friends': [new ObjectID('5bee4e04f9a4a9332eddeb63')]
 		},
 		'3': {
-			'_id': new ObjectID('000000000000000000000003'),
-			'fullName': 'Another Person',
+			'_id': new ObjectID('5bee4e93eacfb53434edbc3a'),
+			'fullName': 'Mike',
 			'img': 'img/user2.png',
-			'feed': new ObjectID('000000000000000000000003'),
-			'groups': [new ObjectID('000000000000000000000001')],
-			'likedPlaylist': [new ObjectID('000000000000000000000002')],
+			'feed': new ObjectID('5bee4e93eacfb53434edbc3a'),
+			'groups': [new ObjectID('5bee4e5a3f7e8333c9496164')],
+			'likedPlaylist': [new ObjectID('5bee4e7bc3c45933fb98de42')],
 			'friends': []
 		},
 		// This is me!
 		'4': {
-			'_id': new ObjectID('000000000000000000000004'),
+			'_id': new ObjectID('5bee4e04f9a4a9332eddeb63'),
 			'fullName': 'caleb7947',
 			'img': 'https://images.unsplash.com/photo-1515536765-9b2a70c4b333?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=e28f973699b9805ba500348e3ecdc38a&auto=format&fit=crop&w=1576&q=80',
-			'feed': new ObjectID('000000000000000000000004'),
-			'groups': [new ObjectID('000000000000000000000001')],
-			'likedPlaylist': [new ObjectID('000000000000000000000002')],
-			'friends': [new ObjectID('000000000000000000000002')]
+			'feed': new ObjectID('5bee4e04f9a4a9332eddeb63'),
+			'groups': [new ObjectID('5bee4e5a3f7e8333c9496164')],
+			'likedPlaylist': [new ObjectID('5bee4e7bc3c45933fb98de42')],
+			'friends': [new ObjectID('5bee4e7bc3c45933fb98de42'), new ObjectID('5bee4e93eacfb53434edbc3a'), new ObjectID('5bee4e5a3f7e8333c9496164')]
 		}
 	},
 	'feeds': {
 		'4': {
-			'_id': new ObjectID('000000000000000000000004'),
+			'_id': new ObjectID('5bee4e04f9a4a9332eddeb63'),
 			// Listing of FeedItems in the feed.
-			'contents': [new ObjectID('000000000000000000000001'), new ObjectID('000000000000000000000002')]
+			'contents': [new ObjectID('5bee4e7bc3c45933fb98de42'), new ObjectID('5bee4e5a3f7e8333c9496164')]
 		},
 		'3': {
-			'_id': new ObjectID('000000000000000000000003'),
+			'_id': new ObjectID('5bee4e93eacfb53434edbc3a'),
 			'contents': []
 		},
 		'2': {
-			'_id': new ObjectID('000000000000000000000002'),
+			'_id': new ObjectID('5bee4e7bc3c45933fb98de42'),
 			'contents': []
 		},
 		'1': {
-			'_id': new ObjectID('000000000000000000000001'),
+			'_id': new ObjectID('5bee4e5a3f7e8333c9496164'),
 			'contents': []
 		}
 	},
 	'feedItems': {
 		'1': {
-			'_id': new ObjectID('000000000000000000000001'),
-			'groupName': 'Group #3',
-			'author': new ObjectID('000000000000000000000004'),
-			// "img": "../public/img/girf.jpg",
+			'_id': new ObjectID('5bee4e5a3f7e8333c9496164'),
+			'groupName': '16:00sundays',
+			'author': new ObjectID('5bee4e04f9a4a9332eddeb63'),
+			'thumbnail': 'https://i.scdn.co/image/4e84f240e82a8fa127a66c29f323d3032d049066',
 			'postDate': 1453668480000,
 			'location': 'Austin, TX',
-			'groupUsers': [new ObjectID('000000000000000000000001'), new ObjectID('000000000000000000000003'), new ObjectID('000000000000000000000004')],
+			'groupUsers': [new ObjectID('5bee4e5a3f7e8333c9496164'), new ObjectID('5bee4e93eacfb53434edbc3a'), new ObjectID('5bee4e04f9a4a9332eddeb63')],
 			'songs': {
-				'totalSongs': 8,
-				'selected_id': 3,
+				'totalSongs': 12,
+				'selected_id': 0,
 				'youtube': [
 					{
-						'index': 3,
-						'_id': 'bzPQ61oYMtQ'
+						"index": 1,
+						"_id": "aj_b7S0UweM"
+					},
+					{
+						"index": 3,
+						"_id": "HMZvrdZ86M8"
+					},
+					{
+						"index": 4,
+						"_id": "TBeFmekd8ME"
+					},
+					{
+						"index": 6,
+						"_id": "6HJIXDOJRyg"
+					},
+					{
+						"index": 9,
+						"_id": "t4cjHg1pX2s"
 					}
+					
 				],
 				'spotify': [
 					{
-						'index': 0,
-						'_id': '5nNmj1cLH3r4aA4XDJ2bgY'
+						"index": 0,
+						"_id": "5NPOzGF9KwzjgfA3q6zbCf"
 					},
 					{
-						'index': 1,
-						'_id': '22UDw8rSfLbUsaAGTXQ4Z8'
+						"index": 2,
+						"_id": "5RelKA9tWt5hbkFNAqZtLB"
 					},
 					{
-						'index': 2,
-						'_id': '1IXiBroTLzGMKvd2OTR0GG'
+						"index": 5,
+						"_id": "393qU26zNVIQNzdBxWQPek"
 					},
 					{
-						'index': 4,
-						'_id': '76EM5JFNGgkBxFq16xZTCC'
+						"index": 7,
+						"_id": "4id34GLER7bKgP0N3eroSQ"
 					},
 					{
-						'index': 5,
-						'_id': '2QbSGkb3TgghEHpjKCsznm'
+						"index": 8,
+						"_id": "53Q8YAh03JoqrGQ5U9bZNx"
 					},
 					{
-						'index': 6,
-						'_id': '73OZcwiBI41R0o5TDGeZ7i'
+						"index": 10,
+						"_id": "1Oui96x92JVAzK4nsoKavW"
 					},
 					{
-						'index': 7,
-						'_id': '1IMu267b5ydoJ4KmKNQQWK'
+						"index": 11,
+						"_id": "4ktkHx7JtPUk2D6ma7tUQ7"
 					}
 				]
 			},
-			'likerList': [new ObjectID('000000000000000000000001'),new ObjectID('000000000000000000000002')]
+			'likerList': [new ObjectID('5bee4e5a3f7e8333c9496164'),new ObjectID('5bee4e7bc3c45933fb98de42')]
 		},
 		'2': {
-			'_id': new ObjectID('000000000000000000000002'),
+			'_id': new ObjectID('5bee4e7bc3c45933fb98de42'),
 			'groupName': 'Group #1',
-			'author': new ObjectID('000000000000000000000002'),
+			'author': new ObjectID('5bee4e7bc3c45933fb98de42'),
 			// "img": "../public/img/user2.png",
 			'postDate': 1453668480000,
 			'location': 'Austin, TX',
-			'groupUsers': [new ObjectID('000000000000000000000001'),new ObjectID('000000000000000000000002'), new ObjectID('000000000000000000000004')],
+			'thumbnail': 'https://images.unsplash.com/photo-1494232410401-ad00d5433cfa?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=beb0f979ed2a7da134fb95a2ae6290c3&auto=format&fit=crop&w=1500&q=80',
+			'groupUsers': [new ObjectID('5bee4e5a3f7e8333c9496164'),new ObjectID('5bee4e7bc3c45933fb98de42'), new ObjectID('5bee4e04f9a4a9332eddeb63')],
 			'songs': {
 				'totalSongs': 1,
 				'selected_id': 0,
@@ -133,7 +151,7 @@ var initialData = {
 					}
 				]
 			},
-			'likerList': [new ObjectID('000000000000000000000002'), new ObjectID('000000000000000000000003'), new ObjectID('000000000000000000000004')]
+			'likerList': [new ObjectID('5bee4e7bc3c45933fb98de42'), new ObjectID('5bee4e93eacfb53434edbc3a'), new ObjectID('5bee4e04f9a4a9332eddeb63')]
 		}
 	}
 }

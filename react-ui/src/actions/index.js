@@ -53,6 +53,19 @@ export const clearPlaylist = () => ({
 	type: 'CLEAR_PLAYLIST'
 })
 
+export const addRoomToUserGroups = (roomId) => ({
+	type: 'ADD_ROOM_TO_USER_GROUPS',
+	roomId
+})
+
+export const login = () => ({
+	type: 'LOGIN'
+})
+
+export const redux_logout = () => ({
+	type: 'LOGOUT'
+})
+
 export const upvote = () => ({
 	type: 'UPVOTE'
 })

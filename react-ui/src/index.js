@@ -11,7 +11,7 @@ import { IndexRoute, Router, Route, browserHistory } from 'react-router'
 import { Provider } from 'react-redux'
 import { createStore, applyMiddleware } from 'redux'
 import reducer from './reducers'
-import { loadUserData } from './actions/index'
+import { loadUserData, login } from './actions/index'
 import { setupSocket } from './sockets/index'
 import { loadState, saveState } from './localStorage'
 import createSagaMiddleware from 'redux-saga'
@@ -78,6 +78,7 @@ class MainPage extends React.Component {
 	componentWillMount() {
 		getUserData(this.props.params.id, (userData) => {
 			store.dispatch(loadUserData(userData))
+			store.dispatch(login())
 		})
 	}
 

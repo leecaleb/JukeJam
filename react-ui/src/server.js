@@ -1,5 +1,6 @@
 import server_url from './config'
 
+// TODO: reusability, combine functions
 export function getUserData(user, cb) {
 	sendXHR('GET', '/user/' + user, undefined, (xhr) => {
 		cb(JSON.parse(xhr.responseText))
@@ -68,8 +69,14 @@ export function removeSong(feedItemId, songId, cb) {
 	})
 }
 
+// export function getPlaylist(feedItemId, cb) {
+// 	sendXHR('GET', '/feeditem/' + feedItemId + '/spotifysonglist', undefined, (xhr) => {
+// 		cb(JSON.parse(xhr.responseText))
+// 	})
+// }
+
 export function getPlaylist(feedItemId, cb) {
-	sendXHR('GET', '/feeditem/' + feedItemId + '/spotifysonglist', undefined, (xhr) => {
+	sendXHR('GET', '/feeditem/' + feedItemId + '/playlist', undefined, (xhr) => {
 		cb(JSON.parse(xhr.responseText))
 	})
 }
@@ -110,18 +117,27 @@ export function addToRoom(userId, friendId, roomId, cb) {
 	})
 }
 
-export function createRoom(userId, roomName, cb) {
-	sendXHR('POST', '/user/' + userId, '/feeditem', roomName, (xhr) => {
+export function createRoom(userId, roomName, friendsToAdd, cb) {
+	sendXHR('POST', '/user/' + userId + '/feeditem/' + roomName, friendsToAdd, (xhr) => {
 		cb(JSON.parse(xhr.responseText))
 	})
 }
 
-//to find token, type node and "new Buffer(JSON.stringify({ id: "000000000000000000000004" })).toString('base64');"
-var token = document.cookie.slice(6)
+export function logout(cb) {
+	sendXHR('GET', '/logout', undefined, (xhr) => {
+		cb(JSON.parse(xhr.responseText))
+	})
+}
+
+//to find token, type node and "new Buffer(JSON.stringify({ id: "5bee4e04f9a4a9332eddeb63" })).toString('base64');"
+// var token = document.cookie.slice(6)
+var token = document.cookie.replace(/(?:(?:^|.*;\s*)token\s*\=\s*([^;]*).*$)|^.*$/, "$1")
+
 function sendXHR(verb, resource, body, cb) {
 	var xhr = new XMLHttpRequest()
-	const host = process.env.NODE_ENV === 'development' ? 'http://localhost:5000' : server_url
+	const host = process.env.NODE_ENV === 'development' ? 'http://localhost:5000' : 'https://jukejam-api.hirecaleblee.me'
 	xhr.open(verb, host + resource)
+	xhr.withCredentials = true
 	xhr.setRequestHeader('Authorization', 'Bearer ' + token)
 
 	// The below comment tells ESLint that AppError is a global.
