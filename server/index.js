@@ -19,7 +19,7 @@ var MongoClient = require('mongodb').MongoClient
 var ObjectID = require('mongodb').ObjectID
 var DBurl = process.env.MONGO_URL
 
-MongoClient.connect(DBurl, function (err, db) {
+MongoClient.connect(DBurl, (err, db) => {
 	if (err) {
 		console.log('error occurred when connecting to the database: ', err)
 	}
@@ -40,7 +40,7 @@ MongoClient.connect(DBurl, function (err, db) {
 	app.use(passport.session())
 
 	const PORT = process.env.PORT || 5000
-	app.listen(PORT, function () {
+	app.listen(PORT, () => {
 		console.log(`Listening on port ${PORT}`)
 	})
 
@@ -58,11 +58,11 @@ MongoClient.connect(DBurl, function (err, db) {
 
 	const SpotifyStrategy = require('passport-spotify').Strategy
 
-	passport.serializeUser(function (user, done) {
+	passport.serializeUser((user, done) => {
 		done(null, user)
 	})
 
-	passport.deserializeUser(function (obj, done) {
+	passport.deserializeUser((obj, done) => {
 		done(null, obj)
 	})
 
@@ -71,7 +71,7 @@ MongoClient.connect(DBurl, function (err, db) {
 		clientSecret: client_secret,
 		callbackURL: redirect_uri
 	}, (accessToken, refreshToken, profile, done) => {
-		process.nextTick(function () {
+		process.nextTick(() => {
 			return done(null, profile)
 		})
 	}))
@@ -109,23 +109,23 @@ MongoClient.connect(DBurl, function (err, db) {
 		})
 	}
 
-	app.get('/callback', function (req, res) {
+	app.get('/callback', (req, res) => {
 		// your application requests refresh and access tokens
 		// after checking the state parameter
 		var code = req.query.code || null
-		spotifyApi.authorizationCodeGrant(code).then(function (data) {
+		spotifyApi.authorizationCodeGrant(code).then((data) => {
 			// Set the access token on the API object to use it in later calls
 			const access_token = data.body['access_token']
 			const refresh_token = data.body['refresh_token']
 			spotifyApi.setAccessToken(access_token)
 			spotifyApi.setRefreshToken(refresh_token)
-			spotifyApi.getMe().then(function (data) {
+			spotifyApi.getMe().then((data) => {
 				db.collection('users').findOne({
 					fullName: data.body.id
 				}, (err, userData) => {
 					var userId
 					if (err) {
-						if (err) throw err
+						res.status(500).send('Error occured with database, please sign in again', err)
 					} else if (userData === null) {
 						createNewUser(data, (err, new_user) => {
 							if (err) {
@@ -142,12 +142,11 @@ MongoClient.connect(DBurl, function (err, db) {
 					res.cookie('spotify-refresh-token', refresh_token, { domain: DOMAIN, overwrite: true  })
 					res.redirect(WEB_URL + '/user/' + userId)
 				})
-			}, function (err) {
-				console.log('Error occurred when retrieving user\'s Spotify account information, please sign in again', err)
+			}, (err) => {
+				res.status(500).send('Error occurred when retrieving user\'s Spotify account information, please sign in again', err)
 			})
-		}, function (err) {
-			console.log('Error occurred with Spotify authorization, please sign in again', err)
-			res.status(401).end()
+		}, (err) => {
+			res.status(500).send('Error occurred with Spotify authorization, please sign in again', err)
 		})
 	})
 
@@ -158,22 +157,22 @@ MongoClient.connect(DBurl, function (err, db) {
 		res.send({})
 	})
 
-	function resolveUserObjects(userList, callback) {
+	function resolveUserObjects(userList, cb) {
 		if (userList.length === 0) {
-			callback(null, {})
+			cb(null, {})
 		} else {
 			var query = {
 				$or: userList.map((id) => { return { _id: id } })
 			}
-			db.collection('users').find(query).toArray(function (err, users) {
+			db.collection('users').find(query).toArray((err, users) => {
 				if (err) {
-					return callback(err)
+					return cb(err)
 				}
 				var userMap = {}
 				users.forEach((user) => {
 					userMap[user._id] = user
 				})
-				callback(null, userMap)
+				cb(null, userMap)
 			})
 		}
 	}
@@ -191,7 +190,7 @@ MongoClient.connect(DBurl, function (err, db) {
 				} else if (userData === null) {
 					res.status(400).send('User with id: ' + user_id + 'does not exist')
 				} else {
-					resolveUserObjects(userData.friends, function (err, userMap) {
+					resolveUserObjects(userData.friends, (err, userMap) => {
 						if (err) {
 							return res.status(400).send(err)
 						}
@@ -205,88 +204,77 @@ MongoClient.connect(DBurl, function (err, db) {
 		}
 	})
 
-	function getFeedItem(feedItemId, callback) {
+	function getFeedItem(feedItemId, cb) {
 		db.collection('feedItems').findOne({
 			_id: feedItemId
-		}, function (err, feedItem) {
+		}, (err, feedItem) => {
 			if (err) {
-				return callback(err)
+				return cb(err)
 			} else if (feedItem === null) {
-				return callback(null, null)
+				return cb(null, null)
 			}
 			var userList = [feedItem.author]
 			userList = userList.concat(feedItem.likerList)
 			userList = userList.concat(feedItem.groupUsers)
-			resolveUserObjects(userList, function (err, userMap) {
+			resolveUserObjects(userList, (err, userMap) => {
 				if (err) {
-					return callback(err)
+					return cb(err)
 				}
 				feedItem.author = userMap[feedItem.author]
 				feedItem.likerList = feedItem.likerList.map((userId) => userMap[userId])
 				feedItem.groupUsers = feedItem.groupUsers.map((userId) => userMap[userId])
-				callback(null, feedItem)
+				cb(null, feedItem)
 			})
 		})
 	}
 
-	function getFeedData(user, callback) {
-		db.collection('users').findOne({
-			_id: user
-		}, function (err, userData) {
-			if (err) {
-				return callback(err)
-			} else if (userData === null) {
-				return callback(null, null)
-			}
-			db.collection('feeds').findOne({
-				_id: userData.feed
-			}, function (err, feedData) {
-				if (err) {
-					return callback(err)
-				} else if (feedData === null) {
-					db.collection('feeds').insertOne({
-						_id: userData.feed,
-						contents: []
-					}, (err, response) => {
-						if (err) throw err
-						callback(null, response.ops[0])
-					})
-				} else {
-					var resolvedContents = []
+	function getFeedData(userId, cb) {
+		db.collection('feeds').findOne({
+			_id: userId
+		}, (err, feedData) => {
+			if (err) cb(err, null)
+			else if (feedData === null) {
+				db.collection('feeds').insertOne({
+					_id: userId,
+					contents: []
+				}, (err, response) => {
+					if (err) cb(err, null)
+					cb(null, response.ops[0])
+				})
+			} else {
+				var resolvedContents = []
 
-					var processNextFeedItem = (i) => {
-						getFeedItem(feedData.contents[i], (err, feedItem) => {
-							if (err) {
-								callback(err)
+				var processNextFeedItem = (i) => {
+					getFeedItem(feedData.contents[i], (err, feedItem) => {
+						if (err) cb(err, null)
+						else {
+							resolvedContents.push(feedItem)
+							if (resolvedContents.length === feedData.contents.length) {
+								feedData.contents = resolvedContents
+								cb(null, feedData)
 							} else {
-								resolvedContents.push(feedItem)
-								if (resolvedContents.length === feedData.contents.length) {
-									feedData.contents = resolvedContents
-									callback(null, feedData)
-								} else {
-									processNextFeedItem(i + 1)
-								}
+								processNextFeedItem(i + 1)
 							}
-						})
-					}
-
-					if (feedData.contents.length === 0) {
-						callback(null, feedData)
-					} else {
-						processNextFeedItem(0)
-					}
+						}
+					})
 				}
-				
-			})
+
+				if (feedData.contents.length === 0) {
+					cb(null, feedData)
+				} else {
+					processNextFeedItem(0)
+				}
+			}
+			
 		})
 	}
 
 	//getFeedData
-	app.get('/user/:userid/feed', function (req, res) {
+	app.get('/user/:userid/feed', (req, res) => {
 		var user_id = req.params.userid
 		var fromUser = getUserIdFromToken(req.get('Authorization'))
 		if (fromUser === user_id) {
-			getFeedData(new ObjectID(user_id), function (err, feedData) {
+			getFeedData(new ObjectID(user_id), (err, feedData) => {
 				if (err) {
 					res.status(500).send('Database error: ' + err)
 				} else if (feedData === null) {
@@ -308,11 +296,12 @@ MongoClient.connect(DBurl, function (err, db) {
 		var friendsToAdd = req.body.map((friend) => friend._id)
 		friendsToAdd.push(user_id)
 		if (user_id === from_user) { // add to user's group + each friend's feed contents
-			db.collection('feedItems').insert({ // look into inserOne and its write response op
+			db.collection('feedItems').insert({ //create new feedItem
 				groupName: room_name,
 				author: new ObjectID(user_id),
 				postDate: new Date(),
 				location: '',
+				// default thumbnail for empty playlist
 				thumbnail: 'https://images.unsplash.com/photo-1494232410401-ad00d5433cfa?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=beb0f979ed2a7da134fb95a2ae6290c3&auto=format&fit=crop&w=1500&q=80',
 				groupUsers: friendsToAdd.map((user) => new ObjectID(user)),
 				songs: {
@@ -323,7 +312,7 @@ MongoClient.connect(DBurl, function (err, db) {
 				},
 				likerList: []
 			}, (err, writeResult) => {
-				if (err) throw err
+				if (err) res.status(500).send('Database error: ' + err)
 				const new_group_id = writeResult.ops[0]._id
 				db.collection('users').findOneAndUpdate({
 					_id: new ObjectID(user_id)
@@ -332,20 +321,9 @@ MongoClient.connect(DBurl, function (err, db) {
 				}, {
 					returnOriginal: false
 				}, (err, userData) => {
-					if (err) throw err
-					// add new added feeditem id to each friend's feed and creator's feed contents
-					db.collection('feeds').update({
-						_id: new ObjectID(user_id)
-					}, {
-						$addToSet: { contents: new_group_id }
-					})
-
-					userData.value.friends.forEach((friend_id) => {
-						db.collection('feeds').update({
-							_id: friend_id
-						}, {
-							$addToSet: { contents: new_group_id}
-						})
+					if (err) res.status(500).send('Database error: ' + err)
+					updateFeedWithNewRoom(user_id, new_group_id, userData, (err) => {
+						if (err) res.status(500).send('Database error: ' + err)
 					})
 					res.status(200).send(new_group_id)
 				})
@@ -353,21 +331,40 @@ MongoClient.connect(DBurl, function (err, db) {
 		}
 	})
 
-	function getLikedPlaylist(user, callback) {
+	// add new added feeditem id to each friend's feed and creator's feed contents
+	function updateFeedWithNewRoom(user_id, new_group_id, userData, cb) {
+		db.collection('feeds').update({
+			_id: new ObjectID(user_id)
+		}, {
+			$addToSet: { contents: new_group_id }
+		}, (err) => {
+			cb(err, null)
+		})
+
+		userData.value.friends.forEach((friend_id) => {
+			db.collection('feeds').update({
+				_id: friend_id
+			}, {
+				$addToSet: { contents: new_group_id}
+			}, (err) => {
+				cb(err, null)
+			})
+		})
+	}
+
+	function getLikedPlaylist(user, cb) {
 		db.collection('users').findOne({
 			_id: user
-		}, function (err, userData) {
+		}, (err, userData) => {
 			var resolvedLikedPlaylist = []
-
 			function processNextFeedItem(i) {
-				getFeedItem(userData.likedPlaylist[i], function (err, feeditem) {
-					if (err) {
-						callback(err)
-					} else {
+				getFeedItem(userData.likedPlaylist[i], (err, feeditem) => {
+					if (err) cb(err, null)
+					else {
 						resolvedLikedPlaylist.push(feeditem)
 						if (resolvedLikedPlaylist.length === userData.likedPlaylist.length) {
 							userData.likedPlaylist = resolvedLikedPlaylist
-							callback(err, userData.likedPlaylist)
+							cb(null, userData.likedPlaylist)
 						} else {
 							processNextFeedItem(i + 1)
 						}
@@ -375,8 +372,9 @@ MongoClient.connect(DBurl, function (err, db) {
 				})
 			}
 
-			if (userData.likedPlaylist.length === 0) {
-				callback(null, [])
+			if (err) cb(err, null)
+			else if (userData.likedPlaylist.length === 0) {
+				cb(null, [])
 			} else {
 				processNextFeedItem(0)
 			}
@@ -384,11 +382,11 @@ MongoClient.connect(DBurl, function (err, db) {
 	}
 
 	// getLikedPlaylist
-	app.get('/user/:userid/likedplaylist', function (req, res) {
+	app.get('/user/:userid/likedplaylist', (req, res) => {
 		var user_id = req.params.userid
 		var fromUser = getUserIdFromToken(req.get('Authorization'))
 		if (fromUser === user_id) {
-			getLikedPlaylist(new ObjectID(user_id), function (err, playlist) {
+			getLikedPlaylist(new ObjectID(user_id), (err, playlist) => {
 				if (err) {
 					res.status(500).send('Database error: ' + err)
 				} else if (playlist === null) {
@@ -402,23 +400,23 @@ MongoClient.connect(DBurl, function (err, db) {
 		}
 	})
 
-	function getGroupHistory(user, callback) {
+	function getGroupHistory(user, cb) {
 		db.collection('users').findOne({
 			_id: user
-		}, function (err, userData) {
+		}, (err, userData) => {
 			if (err) throw err
 
 			var resolvedGroup = []
 
 			function processNextFeedItem(i) {
-				getFeedItem(userData.groups[i], function (err, groups) {
+				getFeedItem(userData.groups[i], (err, groups) => {
 					if (err) {
-						callback(err)
+						cb(err, null)
 					} else {
 						resolvedGroup.push(groups)
 						if (userData.groups.length === resolvedGroup.length) {
 							userData.groups = resolvedGroup
-							callback(null, userData.groups)
+							cb(null, userData.groups)
 						} else {
 							processNextFeedItem(i + 1)
 						}
@@ -427,7 +425,7 @@ MongoClient.connect(DBurl, function (err, db) {
 			}
 
 			if (userData.groups.length === 0) {
-				callback(null, [])
+				cb(null, [])
 			} else {
 				processNextFeedItem(0)
 			}
@@ -435,11 +433,11 @@ MongoClient.connect(DBurl, function (err, db) {
 	}
 
 	// getGroupHistory
-	app.get('/user/:userid/history', function (req, res) {
+	app.get('/user/:userid/history', (req, res) => {
 		var user_id = req.params.userid
 		var fromUser = getUserIdFromToken(req.get('Authorization'))
 		if (fromUser === user_id) {
-			getGroupHistory(new ObjectID(user_id), function (err, group) {
+			getGroupHistory(new ObjectID(user_id), (err, group) => {
 				if (err) {
 					res.status(500).send('Database error: ' + err)
 				} else if (group === null) {
@@ -454,9 +452,9 @@ MongoClient.connect(DBurl, function (err, db) {
 	})
 
 	// getGroupData
-	app.get('/feeditem/:feeditemid', function (req, res) {
+	app.get('/feeditem/:feeditemid', (req, res) => {
 		var feeditem_id = req.params.feeditemid
-		getFeedItem(new ObjectID(feeditem_id), function (err, feeditem) {
+		getFeedItem(new ObjectID(feeditem_id), (err, feeditem) => {
 			if (err) {
 				res.status(500).send('Database error: ' + err)
 			} else if (feeditem === null) {
@@ -486,9 +484,9 @@ MongoClient.connect(DBurl, function (err, db) {
 
 			var updatedLikeCounter = feedItemData.value.likerList
 
-			resolveUserObjects(updatedLikeCounter, function (err, userMap) {
+			resolveUserObjects(updatedLikeCounter, (err, userMap) => {
 				if (err) {
-					cb(err)
+					cb(err, null)
 				}
 				updatedLikeCounter = updatedLikeCounter.map((userId) => userMap[userId])
 				cb(null, updatedLikeCounter)
@@ -497,7 +495,7 @@ MongoClient.connect(DBurl, function (err, db) {
 	}
 
 	// likeFeedItem
-	app.put('/feeditem/:feeditemid/likerlist/:userid', function (req, res) {
+	app.put('/feeditem/:feeditemid/likerlist/:userid', (req, res) => {
 		var feeditem_id = req.params.feeditemid
 		var user_id = req.params.userid
 		var fromUser = getUserIdFromToken(req.get('Authorization'))
@@ -535,7 +533,7 @@ MongoClient.connect(DBurl, function (err, db) {
 			var updatedLikeCounter = feedItemData.value.likerList
 			resolveUserObjects(updatedLikeCounter, (err, userMap) => {
 				if (err) {
-					cb(err)
+					cb(err, null)
 				}
 				updatedLikeCounter = updatedLikeCounter.map((userId) => userMap[userId])
 				cb(null, updatedLikeCounter)
@@ -544,7 +542,7 @@ MongoClient.connect(DBurl, function (err, db) {
 	}
 
 	// unlikeFeedItem
-	app.delete('/feeditem/:feeditemid/likerlist/:userid', function (req, res) {
+	app.delete('/feeditem/:feeditemid/likerlist/:userid', (req, res) => {
 		var feedItem_id = req.params.feeditemid
 		var user_id = req.params.userid
 		var fromUser = getUserIdFromToken(req.get('Authorization'))
@@ -580,9 +578,9 @@ MongoClient.connect(DBurl, function (err, db) {
 	}
 
 	function getTrackThumbnail(songId, cb) {
-		spotifyApi.getTracks([songId]).then(function (data) {
+		spotifyApi.getTracks([songId]).then((data) => {
 			cb(null, data.body.tracks[0].album.images[0].url)
-		}, function (err) {
+		}, (err) => {
 			spotifyApi.refreshAccessToken().then((data) => {
 				spotifyApi.setAccessToken(data.body['access_token'])
 			}, (err) => {
@@ -593,20 +591,18 @@ MongoClient.connect(DBurl, function (err, db) {
 
 
 	//searchSong - spotify
-	app.post('/search', function (req, res) {
+	app.post('/search', (req, res) => {
 		if (typeof (req.body) === 'string') {
 			var queryText = req.body.trim().toLowerCase()
-			spotifyApi.searchTracks(queryText, { limit: 10 }).then(function (data) {
+			spotifyApi.searchTracks(queryText, { limit: 10 }).then((data) => {
 				res.send(data.body)
-			}, function (err) {
+			}, (err) => {
 				spotifyApi.refreshAccessToken().then((data) => {
-					console.log('access token refreshed!')
 					spotifyApi.setAccessToken(data.body['access_token'])
 					spotifyApi.searchTracks(queryText, { limit: 10 }).then((data) => {
 						res.send(data.body)
 					}, (err) => {
-						console.log(err)
-						res.status(400).end()
+						res.status(400).send(err)
 					})
 				}, (err) => {
 					console.log('could not refresh access token', err)
@@ -618,7 +614,7 @@ MongoClient.connect(DBurl, function (err, db) {
 	var google = require('googleapis')
 
 	//searchYoutube
-	app.post('/search/youtube', function (req, res) {
+	app.post('/search/youtube', (req, res) => {
 		if (typeof (req.body) === 'string') {
 			var queryText = req.body.trim().toLowerCase()
 			var service = google.youtube('v3')
@@ -628,10 +624,9 @@ MongoClient.connect(DBurl, function (err, db) {
 				part: 'snippet',
 				type: 'video',
 				key: process.env.YOUTUBE_API_KEY
-			}, function (err, data) {
+			}, (err, data) => {
 				if (err) {
-					console.log('The API returned an error: ' + err)
-					return
+					res.status(500).send('The API returned an error: ' + err)
 				}
 				res.send(data.items)
 			})
@@ -666,7 +661,7 @@ MongoClient.connect(DBurl, function (err, db) {
 		})
 	}
 
-	app.put('/feeditem/:feeditemid/songlist', function (req, res) {
+	app.put('/feeditem/:feeditemid/songlist', (req, res) => {
 		if (typeof (req.body) === 'string') {
 			var song = req.body.trim()
 			var feedItemId = req.params.feeditemid
@@ -677,17 +672,15 @@ MongoClient.connect(DBurl, function (err, db) {
 					} else if (feedItem === null) {
 						res.status(400).send('Could not find feeditem ' + feedItemId)
 					} else {
-						spotifyApi.getTracks([song]).then(function (data) {
+						spotifyApi.getTracks([song]).then((data) => {
 							res.send(data.body)
-						}, function (err) {
+						}, (err) => {
 							spotifyApi.refreshAccessToken().then((data) => {
-								console.log('access token refreshed!')
 								spotifyApi.setAccessToken(data.body['access_token'])
 								spotifyApi.getTracks([song]).then((data) => {
 									res.send(data.body)
 								}, (err) => {
-									console.error(err)
-									res.status(400).end()
+									res.status(400).send(err)
 								})
 							}, (err) => {
 								console.log('could not refresh access token', err)
@@ -723,7 +716,7 @@ MongoClient.connect(DBurl, function (err, db) {
 		})
 	}
 
-	app.delete('/feeditem/:feeditemid/songlist/:songId', function (req, res) {
+	app.delete('/feeditem/:feeditemid/songlist/:songId', (req, res) => {
 		var song = req.params.songId.trim()
 		var feedItem_id = req.params.feeditemid
 		removeSpotifySong(new ObjectID(feedItem_id), song, (err, feedItemData) => {
@@ -732,9 +725,9 @@ MongoClient.connect(DBurl, function (err, db) {
 			} else if (feedItemData === null) {
 				res.status(400).send('Could not find feedItem ' + feedItem_id)
 			} else {
-				spotifyApi.getTracks([song]).then(function (data) {
+				spotifyApi.getTracks([song]).then((data) => {
 					res.send(data.body)
-				}, function (err) {
+				}, (err) => {
 					res.status(400).send(err)
 				})
 			}
@@ -918,7 +911,7 @@ MongoClient.connect(DBurl, function (err, db) {
 		})
 	}
 
-	app.put('/feeditem/:feeditemid/youtubesonglist', function (req, res) {
+	app.put('/feeditem/:feeditemid/youtubesonglist', (req, res) => {
 		if (typeof (req.body) === 'string') {
 			var song = req.body.trim()
 			var feedItemId = req.params.feeditemid
@@ -935,7 +928,7 @@ MongoClient.connect(DBurl, function (err, db) {
 				id: song,
 				part: 'snippet',
 				key: process.env.YOUTUBE_API_KEY
-			}, function (err, data) {
+			}, (err, data) => {
 				if (err) {
 					console.log('The API returned an error: ' + err)
 					return
@@ -957,7 +950,7 @@ MongoClient.connect(DBurl, function (err, db) {
 			returnOriginal: false
 		}, (err, userData) => {
 			if (err) throw err
-			updateFeed(user_id, friend_id, (err, feed) => {
+			updateFeed(user_id, friend_id, (err) => {
 				if (err) throw err
 				res.send(userData.value)
 			})
@@ -968,11 +961,11 @@ MongoClient.connect(DBurl, function (err, db) {
 		db.collection('users').findOne({
 			_id: new ObjectID(user_id)
 		}, (err, userData) => {
-			if (err) throw err
+			if (err) cb(err)
 			db.collection('users').findOne({
 				_id: new ObjectID(friend_id)
 			}, (err, friendData) => {
-				if (err) throw  err
+				if (err) cb(err)
 				db.collection('feeds').findOneAndUpdate({
 					_id: userData.feed
 				}, {
@@ -984,8 +977,8 @@ MongoClient.connect(DBurl, function (err, db) {
 				}, {
 					returnOriginal: false
 				}, (err, feedData) => {
-					if (err) throw err
-					cb(null, feedData.value)
+					if (err) cb(err)
+					cb(null)
 				})
 			})
 		})
@@ -1037,7 +1030,7 @@ MongoClient.connect(DBurl, function (err, db) {
 	/**
   * Translate JSON Schema Validation failures into error 400s.
   */
-	app.use(function (err, req, res, next) {
+	app.use((err, req, res, next) => {
 		if (err.name === 'JsonSchemaValidation') {
 			// Set a bad request http response status
 			res.status(400).end()

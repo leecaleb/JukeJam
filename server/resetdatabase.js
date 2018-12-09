@@ -19,7 +19,7 @@ var initialData = {
 		'2': {
 			'_id': new ObjectID('5bee4e7bc3c45933fb98de42'),
 			'fullName': 'Sarah',
-			'feed': new ObjectID('5bee4e5a3f7e8333c9496164'),
+			'feed': new ObjectID('5bee4e7bc3c45933fb98de42'),
 			'groups': [],
 			'likedPlaylist': [new ObjectID('5bee4e5a3f7e8333c9496164'), new ObjectID('5bee4e7bc3c45933fb98de42')],
 			'friends': [new ObjectID('5bee4e04f9a4a9332eddeb63')]
